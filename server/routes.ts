@@ -79,6 +79,19 @@ export async function registerRoutes(
     }
   });
 
+  // API Route - Dubbed
+  app.get('/api/dubbed', async (req, res) => {
+    try {
+      const response = await fetch("https://dramabox-api-rho.vercel.app/api/dubbed");
+      if (!response.ok) throw new Error(`External API returned ${response.status}`);
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error("Failed to fetch dubbed content:", error);
+      res.status(500).json({ message: "Failed to fetch dubbed content" });
+    }
+  });
+
   // API Route - Search
   app.get('/api/search', async (req, res) => {
     try {

@@ -45,6 +45,7 @@
             <div class="hidden md:flex space-x-4 text-sm font-light">
                 <a href="#" class="hover:text-gray-300" onclick="showMain()">Beranda</a>
                 <a href="#" class="hover:text-gray-300" onclick="showVIP()">VIP <span class="bg-yellow-500 text-black text-[10px] px-1 rounded-sm font-bold ml-1">NEW</span></a>
+                <a href="#" class="hover:text-gray-300" onclick="showDubbed()">Sulih Suara</a>
                 <a href="#" class="hover:text-gray-300">Serial TV</a>
                 <a href="#" class="hover:text-gray-300">Film</a>
             </div>
@@ -73,6 +74,10 @@
         <button onclick="showPopular()" class="flex flex-col items-center space-y-1 focus:text-white">
             <i class="fas fa-play-circle text-xl"></i>
             <span class="text-[10px]">Populer</span>
+        </button>
+        <button onclick="showDubbed()" class="flex flex-col items-center space-y-1 focus:text-white">
+            <i class="fas fa-language text-xl"></i>
+            <span class="text-[10px]">Sulih</span>
         </button>
         <button class="flex flex-col items-center space-y-1">
             <i class="fas fa-user text-xl"></i>
@@ -117,6 +122,13 @@
             <h3 class="text-xl font-bold mb-4">Paling Populer</h3>
             <div id="popular-list" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 <!-- Popular dramas will be injected here -->
+            </div>
+        </div>
+
+        <div id="dubbed-section" class="hidden">
+            <h3 class="text-xl font-bold mb-4">Sulih Suara (Dubbing)</h3>
+            <div id="dubbed-list" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <!-- Dubbed dramas will be injected here -->
             </div>
         </div>
     </div>
@@ -355,6 +367,42 @@
             document.getElementById('trending-section').classList.remove('hidden');
             document.getElementById('rec-section').classList.remove('hidden');
             document.getElementById('popular-section').classList.add('hidden');
+            document.getElementById('dubbed-section').classList.add('hidden');
+        }
+
+        function showDubbed() {
+            document.getElementById('hero').style.display = 'none';
+            document.getElementById('main-content').classList.remove('hidden');
+            document.getElementById('vip-content').classList.add('hidden');
+            document.getElementById('trending-section').classList.add('hidden');
+            document.getElementById('rec-section').classList.add('hidden');
+            document.getElementById('popular-section').classList.add('hidden');
+            const dubbedSection = document.getElementById('dubbed-section');
+            dubbedSection.classList.remove('hidden');
+            
+            const dubbedList = document.getElementById('dubbed-list');
+            dubbedList.innerHTML = '<div class="col-span-full text-center py-10"><i class="fas fa-spinner fa-spin text-2xl text-red-600"></i></div>';
+
+            fetch('/api/dubbed')
+                .then(res => res.json())
+                .then(result => {
+                    if (result.success) {
+                        const records = result.data.data.classifyBookList.records;
+                        dubbedList.innerHTML = records.map(drama => `
+                            <div onclick="window.location.href='/detail.html?id=${drama.bookId}'" class="movie-card transition-all duration-300 cursor-pointer group">
+                                <div class="relative overflow-hidden rounded-sm md:rounded-md">
+                                    <img src="${drama.coverWap}" alt="${drama.bookName}" class="w-full h-auto aspect-[2/3] object-cover">
+                                    ${drama.corner ? `<span class="absolute top-1 left-1 bg-red-600 text-white text-[8px] md:text-[10px] font-bold px-1.5 py-0.5 rounded-sm">${drama.corner.name}</span>` : ''}
+                                </div>
+                                <p class="mt-2 text-xs md:text-sm font-medium line-clamp-1">${drama.bookName}</p>
+                            </div>
+                        `).join('');
+                    }
+                })
+                .catch(err => {
+                    console.error('Failed to fetch dubbed dramas:', err);
+                    dubbedList.innerHTML = '<p class="col-span-full text-center text-red-500">Gagal memuat konten sulih suara.</p>';
+                });
         }
 
         function showPopular() {
