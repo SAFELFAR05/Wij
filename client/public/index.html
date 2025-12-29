@@ -250,11 +250,48 @@
         }
 
         // Search functionality
+        let searchTimeout;
         document.getElementById('search-input').addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase();
-            const filtered = allDramas.filter(d => d.name.toLowerCase().includes(term));
-            renderDramas(filtered);
+            const term = e.target.value.trim();
+            
+            // Clear previous timeout
+            if (searchTimeout) clearTimeout(searchTimeout);
+
+            if (term.length < 2) {
+                // If search is empty or too short, show original dramas
+                renderDramas(allDramas);
+                return;
+            }
+
+            // Debounce API calls
+            searchTimeout = setTimeout(async () => {
+                try {
+                    const response = await fetch(`/api/search?keyword=${encodeURIComponent(term)}`);
+                    const result = await response.json();
+                    if (result.success) {
+                        renderSearchResults(result.data.book, term);
+                    }
+                } catch (err) {
+                    console.error('Search failed:', err);
+                }
+            }, 500);
         });
+
+        function renderSearchResults(results, term) {
+            const trendingSection = document.querySelector('#drama-list').parentElement;
+            const recSection = document.querySelector('#recommendation-list').parentElement;
+            
+            // If we are searching, hide trending and recommendations to show only results
+            if (term) {
+                trendingSection.querySelector('h3').innerText = `Hasil pencarian untuk "${term}"`;
+                recSection.style.display = 'none';
+                renderDramas(results);
+            } else {
+                trendingSection.querySelector('h3').innerText = `Sedang Tren`;
+                recSection.style.display = 'block';
+                renderDramas(allDramas);
+            }
+        }
 
         // Navbar scroll effect
         window.addEventListener('scroll', () => {

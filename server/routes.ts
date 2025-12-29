@@ -66,6 +66,20 @@ export async function registerRoutes(
     }
   });
 
+  // API Route - Search
+  app.get('/api/search', async (req, res) => {
+    try {
+      const { keyword } = req.query;
+      const response = await fetch(`https://dramabox-api-rho.vercel.app/api/search?keyword=${encodeURIComponent(keyword as string)}`);
+      if (!response.ok) throw new Error(`External API returned ${response.status}`);
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error("Failed to search dramas:", error);
+      res.status(500).json({ message: "Failed to search dramas" });
+    }
+  });
+
   // Serve static index.html for all other routes
   app.use(express.static(path.join(__dirname, "../client/public")));
   
