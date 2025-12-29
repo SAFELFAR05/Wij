@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DramaBox - Netflix Clone</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #141414;
+            color: white;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+        .netflix-gradient {
+            background: linear-gradient(to bottom, rgba(0,0,0,0.7) 10%, rgba(0,0,0,0) 100%);
+        }
+        .hero-gradient {
+            background: linear-gradient(to top, #141414 0%, rgba(20,20,20,0) 50%, rgba(20,20,20,0.5) 100%);
+        }
+        .movie-card:hover {
+            transform: scale(1.05);
+            z-index: 10;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 100;
+        }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+    <!-- Navbar -->
+    <nav id="navbar" class="fixed top-0 w-full z-50 transition-all duration-500 p-4 flex items-center justify-between netflix-gradient">
+        <div class="flex items-center space-x-8">
+            <h1 class="text-red-600 text-3xl font-bold tracking-tighter cursor-pointer" onclick="window.location.reload()">DRAMABOX</h1>
+            <div class="hidden md:flex space-x-4 text-sm font-light">
+                <a href="#" class="hover:text-gray-300">Beranda</a>
+                <a href="#" class="hover:text-gray-300">Serial TV</a>
+                <a href="#" class="hover:text-gray-300">Film</a>
+                <a href="#" class="hover:text-gray-300">Terbaru & Populer</a>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div class="relative">
+                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input type="text" id="search-input" placeholder="Titles, people, genres" 
+                    class="bg-black/50 border border-white/20 pl-10 pr-4 py-1 rounded text-sm focus:outline-none focus:border-white w-32 md:w-64">
+            </div>
+            <i class="fas fa-bell cursor-pointer"></i>
+            <div class="w-8 h-8 bg-blue-500 rounded"></div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div id="hero" class="relative h-[80vh] w-full bg-cover bg-center flex items-end pb-24 px-4 md:px-12">
+        <div class="hero-gradient absolute inset-0"></div>
+        <div class="relative z-10 max-w-2xl">
+            <h2 id="hero-title" class="text-4xl md:text-6xl font-bold mb-4"></h2>
+            <p id="hero-desc" class="text-lg text-gray-200 mb-6 line-clamp-3"></p>
+            <div class="flex space-x-4">
+                <button class="bg-white text-black px-8 py-2 rounded font-bold flex items-center space-x-2 hover:bg-white/80 transition">
+                    <i class="fas fa-play"></i> <span>Play</span>
+                </button>
+                <button onclick="showDetails(heroDramaId)" class="bg-gray-500/50 text-white px-8 py-2 rounded font-bold flex items-center space-x-2 hover:bg-gray-500/30 transition">
+                    <i class="fas fa-info-circle"></i> <span>More Info</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="px-4 md:px-12 -mt-12 relative z-20 space-y-8 pb-12">
+        <div>
+            <h3 class="text-xl font-bold mb-4">Trending Now</h3>
+            <div id="drama-list" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <!-- Dramas will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal items-center justify-center p-4">
+        <div class="bg-[#181818] rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto relative">
+            <button onclick="closeModal()" class="absolute top-4 right-4 z-50 bg-black/50 w-8 h-8 rounded-full flex items-center justify-center">
+                <i class="fas fa-times"></i>
+            </button>
+            <div id="modal-content">
+                <!-- Modal content will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allDramas = [];
+        let heroDramaId = null;
+
+        async function fetchDramas() {
+            try {
+                const response = await fetch('/api/dramas');
+                const result = await response.json();
+                if (result.success) {
+                    allDramas = result.data.book;
+                    renderDramas(allDramas);
+                    setupHero(allDramas[0]);
+                }
+            } catch (err) {
+                console.error('Failed to fetch dramas:', err);
+            }
+        }
+
+        function setupHero(drama) {
+            if (!drama) return;
+            heroDramaId = drama.id;
+            document.getElementById('hero').style.backgroundImage = `url(${drama.cover})`;
+            document.getElementById('hero-title').innerText = drama.name;
+            document.getElementById('hero-desc').innerText = drama.introduction;
+        }
+
+        function renderDramas(dramas) {
+            const container = document.getElementById('drama-list');
+            container.innerHTML = dramas.map(drama => `
+                <div onclick="showDetails('${drama.id}')" class="movie-card transition-all duration-300 cursor-pointer">
+                    <img src="${drama.cover}" alt="${drama.name}" class="rounded-sm w-full h-auto aspect-[2/3] object-cover">
+                    <p class="mt-2 text-sm font-medium line-clamp-1">${drama.name}</p>
+                </div>
+            `).join('');
+        }
+
+        function showDetails(id) {
+            const drama = allDramas.find(d => d.id === id);
+            if (!drama) return;
+
+            const modal = document.getElementById('modal');
+            const content = document.getElementById('modal-content');
+            
+            content.innerHTML = `
+                <div class="relative h-96">
+                    <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('${drama.cover}')"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-[#181818]"></div>
+                    <div class="absolute bottom-8 left-8">
+                        <h2 class="text-4xl font-bold mb-4">${drama.name}</h2>
+                        <button class="bg-white text-black px-8 py-2 rounded font-bold">Play</button>
+                    </div>
+                </div>
+                <div class="p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="md:col-span-2">
+                        <div class="flex items-center space-x-4 mb-4 text-green-500 font-bold">
+                            <span>98% Match</span>
+                            <span class="text-gray-400 font-normal">Chapters: ${drama.chapterCount}</span>
+                        </div>
+                        <p class="text-lg leading-relaxed">${drama.introduction}</p>
+                    </div>
+                </div>
+            `;
+            
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Search functionality
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = allDramas.filter(d => d.name.toLowerCase().includes(term));
+            renderDramas(filtered);
+        });
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                nav.classList.add('bg-[#141414]');
+                nav.classList.remove('netflix-gradient');
+            } else {
+                nav.classList.remove('bg-[#141414]');
+                nav.classList.add('netflix-gradient');
+            }
+        });
+
+        fetchDramas();
+    </script>
+</body>
+</html>
