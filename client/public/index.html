@@ -43,10 +43,10 @@
         <div class="flex items-center space-x-8">
             <h1 class="text-red-600 text-3xl font-bold tracking-tighter cursor-pointer" onclick="window.location.reload()">DRAMABOX</h1>
             <div class="hidden md:flex space-x-4 text-sm font-light">
-                <a href="#" class="hover:text-gray-300">Beranda</a>
+                <a href="#" class="hover:text-gray-300" onclick="showMain()">Beranda</a>
+                <a href="#" class="hover:text-gray-300" onclick="showVIP()">VIP <span class="bg-yellow-500 text-black text-[10px] px-1 rounded-sm font-bold ml-1">NEW</span></a>
                 <a href="#" class="hover:text-gray-300">Serial TV</a>
                 <a href="#" class="hover:text-gray-300">Film</a>
-                <a href="#" class="hover:text-gray-300">Terbaru & Populer</a>
             </div>
         </div>
         <div class="flex items-center space-x-4">
@@ -78,19 +78,33 @@
     </div>
 
     <!-- Main Content -->
-    <div class="px-4 md:px-12 -mt-12 relative z-20 space-y-8 pb-12">
-        <div>
+    <div id="main-content" class="px-4 md:px-12 -mt-12 relative z-20 space-y-8 pb-12">
+        <div id="trending-section">
             <h3 class="text-xl font-bold mb-4">Trending Now</h3>
             <div id="drama-list" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 <!-- Dramas will be injected here -->
             </div>
         </div>
 
-        <div>
+        <div id="rec-section">
             <h3 class="text-xl font-bold mb-4">Rekomendasi Untuk Anda</h3>
             <div id="recommendation-list" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 <!-- Recommendations will be injected here -->
             </div>
+        </div>
+    </div>
+
+    <!-- VIP Content -->
+    <div id="vip-content" class="hidden px-4 md:px-12 pt-24 relative z-20 space-y-12 pb-12">
+        <div class="bg-gradient-to-r from-yellow-600 to-yellow-900 p-8 rounded-xl shadow-2xl mb-8 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div>
+                <h2 class="text-3xl font-bold text-white mb-2 italic">DRAMABOX <span class="text-yellow-200">VIP</span></h2>
+                <p class="text-yellow-100 opacity-90">Nikmati akses eksklusif ke pilihan mingguan dan konten premium terbaik.</p>
+            </div>
+            <button class="bg-white text-yellow-900 px-8 py-3 rounded-full font-bold hover:scale-105 transition shadow-lg">Buka Akses VIP</button>
+        </div>
+        <div id="vip-sections" class="space-y-12">
+            <!-- VIP segments will be injected here -->
         </div>
     </div>
 
@@ -304,6 +318,55 @@
                 nav.classList.add('netflix-gradient');
             }
         });
+
+        function showMain() {
+            document.getElementById('hero').style.display = 'flex';
+            document.getElementById('main-content').classList.remove('hidden');
+            document.getElementById('vip-content').classList.add('hidden');
+        }
+
+        async function showVIP() {
+            document.getElementById('hero').style.display = 'none';
+            document.getElementById('main-content').classList.add('hidden');
+            const vipSection = document.getElementById('vip-content');
+            vipSection.classList.remove('hidden');
+            
+            // Show loading
+            document.getElementById('vip-sections').innerHTML = '<div class="text-center py-20"><i class="fas fa-spinner fa-spin text-4xl text-yellow-500"></i></div>';
+
+            try {
+                const response = await fetch('/api/vip');
+                const result = await response.json();
+                if (result.success) {
+                    renderVIP(result.data.data.columnVoList);
+                }
+            } catch (err) {
+                console.error('Failed to fetch VIP content:', err);
+            }
+        }
+
+        function renderVIP(columns) {
+            const container = document.getElementById('vip-sections');
+            container.innerHTML = columns.map(col => `
+                <div class="space-y-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-1 h-6 bg-yellow-500 rounded-full"></div>
+                        <h3 class="text-2xl font-bold text-yellow-100">${col.title}</h3>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        ${col.bookList.map(book => `
+                            <div onclick="window.location.href='/detail.html?id=${book.bookId}'" class="movie-card transition-all duration-300 cursor-pointer group">
+                                <div class="relative overflow-hidden rounded-lg border border-yellow-500/20 group-hover:border-yellow-500/50">
+                                    <img src="${book.coverWap}" alt="${book.bookName}" class="w-full h-auto aspect-[2/3] object-cover">
+                                    <div class="absolute top-2 right-2 bg-yellow-500 text-black text-[10px] font-bold px-1.5 py-0.5 rounded-sm shadow-lg">VIP</div>
+                                </div>
+                                <p class="mt-2 text-sm font-medium line-clamp-1 group-hover:text-yellow-500 transition-colors">${book.bookName}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
 
         fetchDramas();
     </script>
