@@ -503,6 +503,10 @@
                     </div>
                 </div>
             `).join('');
+            
+            // Indonesia: "VIP Eksklusif" title check
+            const vipTitle = vipSection.querySelector('h2');
+            if (vipTitle) vipTitle.innerText = "VIP Eksklusif";
         }
 
         fetchDramas();
