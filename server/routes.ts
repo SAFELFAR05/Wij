@@ -25,6 +25,34 @@ export async function registerRoutes(
     }
   });
 
+  // API Route - Detail
+  app.get('/api/dramas/:bookId', async (req, res) => {
+    try {
+      const { bookId } = req.params;
+      const response = await fetch(`https://dramabox-api-rho.vercel.app/api/detail/${bookId}/v2`);
+      if (!response.ok) throw new Error(`External API returned ${response.status}`);
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error("Failed to fetch drama detail:", error);
+      res.status(500).json({ message: "Failed to fetch drama detail" });
+    }
+  });
+
+  // API Route - Stream
+  app.get('/api/stream', async (req, res) => {
+    try {
+      const { bookId, episode } = req.query;
+      const response = await fetch(`https://dramabox-api-rho.vercel.app/api/stream?bookId=${bookId}&episode=${episode}`);
+      if (!response.ok) throw new Error(`External API returned ${response.status}`);
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error("Failed to fetch stream:", error);
+      res.status(500).json({ message: "Failed to fetch stream" });
+    }
+  });
+
   // Serve static index.html for all other routes
   app.use(express.static(path.join(__dirname, "../client/public")));
   
