@@ -39,9 +39,9 @@
 </head>
 <body class="overflow-x-hidden">
     <!-- Navbar -->
-    <nav id="navbar" class="fixed top-0 w-full z-50 transition-all duration-500 p-4 flex items-center justify-between netflix-gradient">
-        <div class="flex items-center space-x-8">
-            <h1 class="text-red-600 text-3xl font-bold tracking-tighter cursor-pointer" onclick="window.location.reload()">DRAMABOX</h1>
+    <nav id="navbar" class="fixed top-0 w-full z-50 transition-all duration-500 px-4 py-3 md:px-8 md:py-4 flex items-center justify-between netflix-gradient">
+        <div class="flex items-center space-x-4 md:space-x-8">
+            <h1 class="text-red-600 text-2xl md:text-3xl font-bold tracking-tighter cursor-pointer" onclick="window.location.reload()">DRAMABOX</h1>
             <div class="hidden md:flex space-x-4 text-sm font-light">
                 <a href="#" class="hover:text-gray-300" onclick="showMain()">Beranda</a>
                 <a href="#" class="hover:text-gray-300" onclick="showVIP()">VIP <span class="bg-yellow-500 text-black text-[10px] px-1 rounded-sm font-bold ml-1">NEW</span></a>
@@ -49,28 +49,48 @@
                 <a href="#" class="hover:text-gray-300">Film</a>
             </div>
         </div>
-        <div class="flex items-center space-x-4">
-            <div class="relative">
-                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                <input type="text" id="search-input" placeholder="Titles, people, genres" 
-                    class="bg-black/50 border border-white/20 pl-10 pr-4 py-1 rounded text-sm focus:outline-none focus:border-white w-32 md:w-64">
+        <div class="flex items-center space-x-3 md:space-x-4">
+            <div class="relative group">
+                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-white transition-colors"></i>
+                <input type="text" id="search-input" placeholder="Cari drama..." 
+                    class="bg-black/50 border border-white/20 rounded-full py-1.5 pl-10 pr-4 text-xs md:text-sm focus:outline-none focus:border-red-600 focus:bg-black/80 transition-all w-32 md:w-64">
             </div>
-            <i class="fas fa-bell cursor-pointer"></i>
-            <div class="w-8 h-8 bg-blue-500 rounded"></div>
+            <i class="fas fa-bell text-sm md:text-lg cursor-pointer hidden sm:block"></i>
+            <div class="w-7 h-7 md:w-8 md:h-8 bg-blue-500 rounded cursor-pointer"></div>
         </div>
     </nav>
 
+    <!-- Mobile Navigation Bar (Bottom) -->
+    <div class="md:hidden fixed bottom-0 w-full bg-[#141414]/95 backdrop-blur-md border-t border-white/10 z-50 px-6 py-3 flex justify-between items-center text-gray-400">
+        <button onclick="showMain()" class="flex flex-col items-center space-y-1 focus:text-white">
+            <i class="fas fa-home text-xl"></i>
+            <span class="text-[10px]">Beranda</span>
+        </button>
+        <button onclick="showVIP()" class="flex flex-col items-center space-y-1 focus:text-white">
+            <i class="fas fa-crown text-xl text-yellow-500"></i>
+            <span class="text-[10px]">VIP</span>
+        </button>
+        <button class="flex flex-col items-center space-y-1">
+            <i class="fas fa-play-circle text-xl"></i>
+            <span class="text-[10px]">Populer</span>
+        </button>
+        <button class="flex flex-col items-center space-y-1">
+            <i class="fas fa-user text-xl"></i>
+            <span class="text-[10px]">Profil</span>
+        </button>
+    </div>
+
     <!-- Hero Section -->
-    <div id="hero" class="relative h-[80vh] w-full bg-cover bg-center flex items-end pb-24 px-4 md:px-12">
+    <div id="hero" class="relative h-[60vh] md:h-[80vh] w-full bg-cover bg-center flex items-end pb-12 md:pb-24 px-4 md:px-12">
         <div class="hero-gradient absolute inset-0"></div>
         <div class="relative z-10 max-w-2xl">
-            <h2 id="hero-title" class="text-4xl md:text-6xl font-bold mb-4"></h2>
-            <p id="hero-desc" class="text-lg text-gray-200 mb-6 line-clamp-3"></p>
-            <div class="flex space-x-4">
-                <button class="bg-white text-black px-8 py-2 rounded font-bold flex items-center space-x-2 hover:bg-white/80 transition">
+            <h2 id="hero-title" class="text-3xl md:text-6xl font-bold mb-2 md:mb-4"></h2>
+            <p id="hero-desc" class="text-sm md:text-lg text-gray-200 mb-4 md:mb-6 line-clamp-3"></p>
+            <div class="flex space-x-3 md:space-x-4">
+                <button class="bg-white text-black px-6 py-2 md:px-8 md:py-2 rounded font-bold flex items-center space-x-2 hover:bg-white/80 transition text-sm md:text-base">
                     <i class="fas fa-play"></i> <span>Play</span>
                 </button>
-                <button onclick="showDetails(heroDramaId)" class="bg-gray-500/50 text-white px-8 py-2 rounded font-bold flex items-center space-x-2 hover:bg-gray-500/30 transition">
+                <button onclick="showDetails(heroDramaId)" class="bg-gray-500/50 text-white px-6 py-2 md:px-8 md:py-2 rounded font-bold flex items-center space-x-2 hover:bg-gray-500/30 transition text-sm md:text-base">
                     <i class="fas fa-info-circle"></i> <span>More Info</span>
                 </button>
             </div>
@@ -167,9 +187,11 @@
         function renderDramas(dramas) {
             const container = document.getElementById('drama-list');
             container.innerHTML = dramas.map(drama => `
-                <div onclick="window.location.href='/detail.html?id=${drama.id}'" class="movie-card transition-all duration-300 cursor-pointer">
-                    <img src="${drama.cover}" alt="${drama.name}" class="rounded-sm w-full h-auto aspect-[2/3] object-cover">
-                    <p class="mt-2 text-sm font-medium line-clamp-1">${drama.name}</p>
+                <div onclick="window.location.href='/detail.html?id=${drama.id}'" class="movie-card transition-all duration-300 cursor-pointer group">
+                    <div class="relative overflow-hidden rounded-sm md:rounded-md">
+                        <img src="${drama.cover}" alt="${drama.name}" class="w-full h-auto aspect-[2/3] object-cover">
+                    </div>
+                    <p class="mt-2 text-xs md:text-sm font-medium line-clamp-1">${drama.name}</p>
                 </div>
             `).join('');
         }
@@ -177,13 +199,13 @@
         function renderRecommendations(recs) {
             const container = document.getElementById('recommendation-list');
             container.innerHTML = recs.map(rec => `
-                <div onclick="window.location.href='/detail.html?id=${rec.bookId}'" class="movie-card transition-all duration-300 cursor-pointer">
-                    <div class="relative">
-                        <img src="${rec.coverWap}" alt="${rec.bookName}" class="rounded-sm w-full h-auto aspect-[2/3] object-cover">
-                        ${rec.corner ? `<span class="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-sm">${rec.corner.name}</span>` : ''}
-                        ${rec.rankVo ? `<span class="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded-sm"><i class="fas fa-fire text-red-500 mr-1"></i>${rec.rankVo.hotCode}</span>` : ''}
+                <div onclick="window.location.href='/detail.html?id=${rec.bookId}'" class="movie-card transition-all duration-300 cursor-pointer group">
+                    <div class="relative overflow-hidden rounded-sm md:rounded-md">
+                        <img src="${rec.coverWap}" alt="${rec.bookName}" class="w-full h-auto aspect-[2/3] object-cover">
+                        ${rec.corner ? `<span class="absolute top-1 left-1 md:top-2 md:left-2 bg-red-600 text-white text-[8px] md:text-[10px] font-bold px-1 md:px-1.5 py-0.5 rounded-sm">${rec.corner.name}</span>` : ''}
+                        ${rec.rankVo ? `<span class="absolute bottom-1 right-1 md:bottom-2 md:right-2 bg-black/60 text-white text-[8px] md:text-[10px] px-1 md:px-1.5 py-0.5 rounded-sm"><i class="fas fa-fire text-red-500 mr-0.5 md:mr-1"></i>${rec.rankVo.hotCode}</span>` : ''}
                     </div>
-                    <p class="mt-2 text-sm font-medium line-clamp-1">${rec.bookName}</p>
+                    <p class="mt-2 text-xs md:text-sm font-medium line-clamp-1">${rec.bookName}</p>
                 </div>
             `).join('');
         }
@@ -360,7 +382,7 @@
                                     <img src="${book.coverWap}" alt="${book.bookName}" class="w-full h-auto aspect-[2/3] object-cover">
                                     <div class="absolute top-2 right-2 bg-yellow-500 text-black text-[10px] font-bold px-1.5 py-0.5 rounded-sm shadow-lg">VIP</div>
                                 </div>
-                                <p class="mt-2 text-sm font-medium line-clamp-1 group-hover:text-yellow-500 transition-colors">${book.bookName}</p>
+                                <p class="mt-2 text-xs md:text-sm font-medium line-clamp-1 group-hover:text-yellow-500 transition-colors">${book.bookName}</p>
                             </div>
                         `).join('')}
                     </div>
