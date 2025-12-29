@@ -123,12 +123,17 @@
             document.getElementById('hero').style.backgroundImage = `url(${drama.cover})`;
             document.getElementById('hero-title').innerText = drama.name;
             document.getElementById('hero-desc').innerText = drama.introduction;
+            // Update More Info link to detail page
+            const moreInfoBtn = document.querySelector('button[onclick^="showDetails"]');
+            if (moreInfoBtn) {
+                moreInfoBtn.setAttribute('onclick', `window.location.href='/detail.html?id=${drama.id}'`);
+            }
         }
 
         function renderDramas(dramas) {
             const container = document.getElementById('drama-list');
             container.innerHTML = dramas.map(drama => `
-                <div onclick="showDetails('${drama.id}')" class="movie-card transition-all duration-300 cursor-pointer">
+                <div onclick="window.location.href='/detail.html?id=${drama.id}'" class="movie-card transition-all duration-300 cursor-pointer">
                     <img src="${drama.cover}" alt="${drama.name}" class="rounded-sm w-full h-auto aspect-[2/3] object-cover">
                     <p class="mt-2 text-sm font-medium line-clamp-1">${drama.name}</p>
                 </div>
