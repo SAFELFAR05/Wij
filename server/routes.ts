@@ -53,6 +53,19 @@ export async function registerRoutes(
     }
   });
 
+  // API Route - Recommendations
+  app.get('/api/recommendations', async (req, res) => {
+    try {
+      const response = await fetch("https://dramabox-api-rho.vercel.app/api/recommend");
+      if (!response.ok) throw new Error(`External API returned ${response.status}`);
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error("Failed to fetch recommendations:", error);
+      res.status(500).json({ message: "Failed to fetch recommendations" });
+    }
+  });
+
   // Serve static index.html for all other routes
   app.use(express.static(path.join(__dirname, "../client/public")));
   

@@ -147,7 +147,35 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Recommendations Section -->
+                        <div class="px-4 md:px-12 py-12 max-w-6xl mx-auto">
+                            <h3 class="text-2xl font-bold mb-6 border-b border-gray-800 pb-2">Rekomendasi Untuk Anda</h3>
+                            <div id="recommendation-list" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                                <div class="col-span-full text-center py-10">
+                                    <i class="fas fa-spinner fa-spin text-2xl"></i>
+                                </div>
+                            </div>
+                        </div>
                     `;
+                    
+                    // Fetch recommendations
+                    fetch('/api/recommendations')
+                        .then(res => res.json())
+                        .then(recResult => {
+                            if (recResult.success) {
+                                const recContainer = document.getElementById('recommendation-list');
+                                recContainer.innerHTML = recResult.data.map(rec => `
+                                    <div onclick="window.location.href='/detail.html?id=${rec.bookId}'" class="movie-card transition-all duration-300 cursor-pointer group">
+                                        <div class="relative overflow-hidden rounded-sm">
+                                            <img src="${rec.coverWap}" alt="${rec.bookName}" class="w-full h-auto aspect-[2/3] object-cover transition-transform duration-300 group-hover:scale-110">
+                                            ${rec.corner ? `<span class="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-sm">${rec.corner.name}</span>` : ''}
+                                        </div>
+                                        <p class="mt-2 text-sm font-medium line-clamp-1 group-hover:text-red-500 transition-colors">${rec.bookName}</p>
+                                    </div>
+                                `).join('');
+                            }
+                        });
                 }
             } catch (err) {
                 console.error('Fetch detail failed:', err);

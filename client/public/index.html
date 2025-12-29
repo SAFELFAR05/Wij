@@ -85,6 +85,13 @@
                 <!-- Dramas will be injected here -->
             </div>
         </div>
+
+        <div>
+            <h3 class="text-xl font-bold mb-4">Rekomendasi Untuk Anda</h3>
+            <div id="recommendation-list" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <!-- Recommendations will be injected here -->
+            </div>
+        </div>
     </div>
 
     <!-- Modal -->
@@ -105,12 +112,20 @@
 
         async function fetchDramas() {
             try {
+                // Fetch main dramas
                 const response = await fetch('/api/dramas');
                 const result = await response.json();
                 if (result.success) {
                     allDramas = result.data.book;
                     renderDramas(allDramas);
                     setupHero(allDramas[0]);
+                }
+
+                // Fetch recommendations
+                const recResponse = await fetch('/api/recommendations');
+                const recResult = await recResponse.json();
+                if (recResult.success) {
+                    renderRecommendations(recResult.data);
                 }
             } catch (err) {
                 console.error('Failed to fetch dramas:', err);
@@ -141,6 +156,20 @@
                 <div onclick="window.location.href='/detail.html?id=${drama.id}'" class="movie-card transition-all duration-300 cursor-pointer">
                     <img src="${drama.cover}" alt="${drama.name}" class="rounded-sm w-full h-auto aspect-[2/3] object-cover">
                     <p class="mt-2 text-sm font-medium line-clamp-1">${drama.name}</p>
+                </div>
+            `).join('');
+        }
+
+        function renderRecommendations(recs) {
+            const container = document.getElementById('recommendation-list');
+            container.innerHTML = recs.map(rec => `
+                <div onclick="window.location.href='/detail.html?id=${rec.bookId}'" class="movie-card transition-all duration-300 cursor-pointer">
+                    <div class="relative">
+                        <img src="${rec.coverWap}" alt="${rec.bookName}" class="rounded-sm w-full h-auto aspect-[2/3] object-cover">
+                        ${rec.corner ? `<span class="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-sm">${rec.corner.name}</span>` : ''}
+                        ${rec.rankVo ? `<span class="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded-sm"><i class="fas fa-fire text-red-500 mr-1"></i>${rec.rankVo.hotCode}</span>` : ''}
+                    </div>
+                    <p class="mt-2 text-sm font-medium line-clamp-1">${rec.bookName}</p>
                 </div>
             `).join('');
         }
