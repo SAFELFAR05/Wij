@@ -185,12 +185,16 @@
 
         function toggleFullscreen() {
             const video = document.getElementById('custom-video');
+            if (!video) return;
+            
             if (video.requestFullscreen) {
                 video.requestFullscreen();
             } else if (video.webkitRequestFullscreen) { /* Safari */
                 video.webkitRequestFullscreen();
             } else if (video.msRequestFullscreen) { /* IE11 */
                 video.msRequestFullscreen();
+            } else if (video.webkitEnterFullscreen) { /* iOS */
+                video.webkitEnterFullscreen();
             }
         }
 
