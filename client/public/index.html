@@ -70,7 +70,7 @@
             <i class="fas fa-crown text-xl text-yellow-500"></i>
             <span class="text-[10px]">VIP</span>
         </button>
-        <button class="flex flex-col items-center space-y-1">
+        <button onclick="showPopular()" class="flex flex-col items-center space-y-1 focus:text-white">
             <i class="fas fa-play-circle text-xl"></i>
             <span class="text-[10px]">Populer</span>
         </button>
@@ -110,6 +110,13 @@
             <h3 class="text-xl font-bold mb-4">Rekomendasi Untuk Anda</h3>
             <div id="recommendation-list" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 <!-- Recommendations will be injected here -->
+            </div>
+        </div>
+
+        <div id="popular-section" class="hidden">
+            <h3 class="text-xl font-bold mb-4">Paling Populer</h3>
+            <div id="popular-list" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <!-- Popular dramas will be injected here -->
             </div>
         </div>
     </div>
@@ -345,6 +352,31 @@
             document.getElementById('hero').style.display = 'flex';
             document.getElementById('main-content').classList.remove('hidden');
             document.getElementById('vip-content').classList.add('hidden');
+            document.getElementById('trending-section').classList.remove('hidden');
+            document.getElementById('rec-section').classList.remove('hidden');
+            document.getElementById('popular-section').classList.add('hidden');
+        }
+
+        function showPopular() {
+            document.getElementById('hero').style.display = 'none';
+            document.getElementById('main-content').classList.remove('hidden');
+            document.getElementById('vip-content').classList.add('hidden');
+            document.getElementById('trending-section').classList.add('hidden');
+            document.getElementById('rec-section').classList.add('hidden');
+            const popularSection = document.getElementById('popular-section');
+            popularSection.classList.remove('hidden');
+            
+            const popularList = document.getElementById('popular-list');
+            // Use existing allDramas data for popular
+            popularList.innerHTML = allDramas.map(drama => `
+                <div onclick="window.location.href='/detail.html?id=${drama.id}'" class="movie-card transition-all duration-300 cursor-pointer group">
+                    <div class="relative overflow-hidden rounded-sm md:rounded-md">
+                        <img src="${drama.cover}" alt="${drama.name}" class="w-full h-auto aspect-[2/3] object-cover">
+                        <div class="absolute bottom-2 left-2 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-sm shadow-lg">HOT</div>
+                    </div>
+                    <p class="mt-2 text-xs md:text-sm font-medium line-clamp-1">${drama.name}</p>
+                </div>
+            `).join('');
         }
 
         async function showVIP() {
