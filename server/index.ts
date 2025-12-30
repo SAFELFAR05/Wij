@@ -1,7 +1,24 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
+import { setupVite } from "./vite";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+export function log(message: string, source = "express") {
+  const formattedTime = new Date().toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  });
+
+  console.log(`${formattedTime} [${source}] ${message}`);
+}
 
 const app = express();
 const httpServer = createServer(app);
@@ -22,16 +39,8 @@ app.use(
 
 app.use(express.urlencoded({ extended: false }));
 
-export function log(message: string, source = "express") {
-  const formattedTime = new Date().toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
-  });
-
-  console.log(`${formattedTime} [${source}] ${message}`);
-}
+// Remove duplicate log function or move it if needed, 
+// but based on typical template it might be in vite.ts
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -77,7 +86,7 @@ app.use((req, res, next) => {
     serveStatic(app);
   } else {
     // Simplified: serve static public folder even in development
-    app.use(express.static(path.resolve(import.meta.dirname, "..", "client", "public")));
+    app.use(express.static(path.resolve(__dirname, "..", "client", "public")));
     await setupVite(httpServer, app);
   }
 
