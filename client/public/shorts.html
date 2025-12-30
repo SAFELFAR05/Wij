@@ -99,10 +99,11 @@
             const container = document.getElementById('short-container');
             const div = document.createElement('div');
             div.className = 'short-item';
+            const posterUrl = drama.coverWap || drama.cover;
             div.innerHTML = `
                 <div class="video-wrapper">
                     <!-- Added poster image as placeholder -->
-                    <video loop playsinline ${isFirst ? 'preload="auto"' : 'preload="metadata"'} class="opacity-0 transition-opacity duration-500">
+                    <video loop playsinline ${isFirst ? 'preload="auto"' : 'preload="metadata"'} poster="${posterUrl}" class="opacity-0 transition-opacity duration-500">
                         <source src="${videoUrl}" type="video/mp4">
                     </video>
                     <!-- Loading state per video -->
