@@ -154,56 +154,66 @@
 
     <!-- Profile Sidebar/Modal -->
     <div id="profile-modal" class="modal items-center justify-center p-4">
-        <div class="bg-[#181818] rounded-lg max-w-md w-full overflow-hidden relative border border-white/10">
-            <button onclick="closeProfile()" class="absolute top-4 right-4 z-50 bg-black/50 w-8 h-8 rounded-full flex items-center justify-center">
-                <i class="fas fa-times"></i>
+        <div class="bg-white/10 backdrop-blur-xl rounded-2xl max-w-md w-full overflow-hidden relative border border-white/20 shadow-2xl">
+            <button onclick="closeProfile()" class="absolute top-4 right-4 z-50 bg-black/20 hover:bg-black/40 w-8 h-8 rounded-full flex items-center justify-center transition-colors">
+                <i class="fas fa-times text-white/70"></i>
             </button>
-            <div class="p-6">
+            <div class="p-8">
                 <div class="flex items-center space-x-4 mb-8">
-                    <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center text-2xl font-bold">U</div>
+                    <div class="w-16 h-16 bg-gradient-to-br from-red-600 to-red-900 rounded-full flex items-center justify-center text-2xl font-bold shadow-lg border border-white/20">U</div>
                     <div>
-                        <h2 class="text-xl font-bold text-white">Pengguna Setia</h2>
-                        <p class="text-gray-400 text-sm">premium@elfarbox.com</p>
+                        <h2 class="text-xl font-bold text-white tracking-tight">Pengguna Setia</h2>
+                        <p class="text-white/50 text-sm">premium@elfarbox.com</p>
                     </div>
                 </div>
                 
-                <div class="space-y-1">
-                    <button class="w-full flex items-center justify-between p-3 hover:bg-white/5 rounded-md transition-colors text-gray-200">
-                        <div class="flex items-center space-x-3">
-                            <i class="fas fa-user-circle w-5 text-center text-gray-400"></i>
-                            <span>Akun Saya</span>
+                <div class="space-y-2">
+                    <button class="w-full flex items-center justify-between p-3.5 hover:bg-white/10 rounded-xl transition-all text-white/90 group">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+                                <i class="fas fa-user-circle text-lg text-white/60"></i>
+                            </div>
+                            <span class="font-medium">Akun Saya</span>
                         </div>
-                        <i class="fas fa-chevron-right text-xs text-gray-600"></i>
+                        <i class="fas fa-chevron-right text-xs text-white/30 group-hover:translate-x-1 transition-transform"></i>
                     </button>
-                    <button onclick="window.location.href='/about.html'" class="w-full flex items-center justify-between p-3 hover:bg-white/5 rounded-md transition-colors text-gray-200">
-                        <div class="flex items-center space-x-3">
-                            <i class="fas fa-info-circle w-5 text-center text-gray-400"></i>
-                            <span>Tentang ELFARBOX</span>
+                    <button onclick="window.location.href='/about.html'" class="w-full flex items-center justify-between p-3.5 hover:bg-white/10 rounded-xl transition-all text-white/90 group">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+                                <i class="fas fa-info-circle text-lg text-white/60"></i>
+                            </div>
+                            <span class="font-medium">Tentang ELFARBOX</span>
                         </div>
-                        <i class="fas fa-chevron-right text-xs text-gray-600"></i>
+                        <i class="fas fa-chevron-right text-xs text-white/30 group-hover:translate-x-1 transition-transform"></i>
                     </button>
-                    <button onclick="window.location.href='/privacy.html'" class="w-full flex items-center justify-between p-3 hover:bg-white/5 rounded-md transition-colors text-gray-200">
-                        <div class="flex items-center space-x-3">
-                            <i class="fas fa-shield-alt w-5 text-center text-gray-400"></i>
-                            <span>Kebijakan Privasi</span>
+                    <button onclick="window.location.href='/privacy.html'" class="w-full flex items-center justify-between p-3.5 hover:bg-white/10 rounded-xl transition-all text-white/90 group">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+                                <i class="fas fa-shield-alt text-lg text-white/60"></i>
+                            </div>
+                            <span class="font-medium">Kebijakan Privasi</span>
                         </div>
-                        <i class="fas fa-chevron-right text-xs text-gray-600"></i>
+                        <i class="fas fa-chevron-right text-xs text-white/30 group-hover:translate-x-1 transition-transform"></i>
                     </button>
-                    <button onclick="window.location.href='/terms.html'" class="w-full flex items-center justify-between p-3 hover:bg-white/5 rounded-md transition-colors text-gray-200">
-                        <div class="flex items-center space-x-3">
-                            <i class="fas fa-file-contract w-5 text-center text-gray-400"></i>
-                            <span>Syarat & Ketentuan</span>
+                    <button onclick="window.location.href='/terms.html'" class="w-full flex items-center justify-between p-3.5 hover:bg-white/10 rounded-xl transition-all text-white/90 group">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+                                <i class="fas fa-file-contract text-lg text-white/60"></i>
+                            </div>
+                            <span class="font-medium">Syarat & Ketentuan</span>
                         </div>
-                        <i class="fas fa-chevron-right text-xs text-gray-600"></i>
+                        <i class="fas fa-chevron-right text-xs text-white/30 group-hover:translate-x-1 transition-transform"></i>
                     </button>
-                    <div class="h-[1px] bg-white/10 my-4"></div>
-                    <button class="w-full flex items-center space-x-3 p-3 hover:bg-white/5 rounded-md transition-colors text-red-500">
-                        <i class="fas fa-sign-out-alt w-5 text-center"></i>
-                        <span>Keluar</span>
+                    <div class="h-[1px] bg-white/10 my-6"></div>
+                    <button class="w-full flex items-center space-x-4 p-3.5 hover:bg-red-500/10 rounded-xl transition-all text-red-400 group">
+                        <div class="w-10 h-10 rounded-lg bg-red-500/5 flex items-center justify-center group-hover:bg-red-500/10 transition-colors">
+                            <i class="fas fa-sign-out-alt text-lg"></i>
+                        </div>
+                        <span class="font-medium">Keluar</span>
                     </button>
                 </div>
                 
-                <p class="text-[10px] text-gray-600 mt-8 text-center uppercase tracking-widest">ELFARBOX v1.2.0</p>
+                <p class="text-[10px] text-white/30 mt-10 text-center uppercase tracking-[0.2em] font-bold">ELFARBOX v1.2.0</p>
             </div>
         </div>
     </div>
