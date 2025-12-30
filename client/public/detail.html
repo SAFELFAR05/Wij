@@ -92,7 +92,7 @@
                         <!-- Player Section -->
                         <div class="pt-16 md:pt-20 px-0 md:px-12 max-w-6xl mx-auto">
                             <div class="video-container shadow-2xl group !rounded-none md:!rounded-lg">
-                                <video id="custom-video" ${videoUrl ? 'src="'+videoUrl+'"' : ''} poster="${posterUrl}" controls playsinline class="w-full h-full"></video>
+                                <video id="custom-video" ${videoUrl ? 'src="'+videoUrl+'"' : ''} poster="${posterUrl}" controls controlsList="nodownload" oncontextmenu="return false;" playsinline class="w-full h-full"></video>
                                 ${!videoUrl ? '<div class="absolute inset-0 flex items-center justify-center bg-gray-900"><p>Gagal memuat video</p></div>' : ''}
                                 <div class="fullscreen-btn hover:scale-110 transition" onclick="toggleFullscreen()">
                                     <i class="fas fa-expand text-white text-lg"></i>
