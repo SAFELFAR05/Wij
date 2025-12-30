@@ -68,33 +68,50 @@
         async function fetchDetail() {
             if (!bookId) return window.location.href = '/';
             
+            const detailContainer = document.getElementById('detail-content');
+            
             try {
                 const response = await fetch(`/api/dramas/${bookId}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const result = await response.json();
                 
-                if (result.success) {
+                if (result.success && result.data && result.data.drama) {
                     const d = result.data.drama;
-                    const chapters = result.data.chapters;
+                    const chapters = result.data.chapters || [];
                     
                     document.title = `${d.bookName} - ELFARBOX`;
 
                     // Fetch stream for current episode
-                    const streamRes = await fetch(`/api/stream?bookId=${bookId}&episode=${episode}`);
-                    const streamData = await streamRes.json();
-                    const videoUrl = streamData.status === "success" ? streamData.data.chapter.video.mp4 : '';
-                    const posterUrl = d.coverWap || d.cover;
+                    let videoUrl = '';
+                    try {
+                        const streamRes = await fetch(`/api/stream?bookId=${bookId}&episode=${episode}`);
+                        if (streamRes.ok) {
+                            const streamData = await streamRes.json();
+                            if (streamData.status === "success" && streamData.data?.chapter?.video?.mp4) {
+                                videoUrl = streamData.data.chapter.video.mp4;
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Stream fetch error:', e);
+                    }
                     
+                    const posterUrl = d.coverWap || d.cover;
                     const currentEp = parseInt(episode);
-                    const totalEps = d.chapterCount;
+                    const totalEps = d.chapterCount || chapters.length;
                     const hasPrev = currentEp > 1;
                     const hasNext = currentEp < totalEps;
 
-                    document.getElementById('detail-content').innerHTML = `
+                    detailContainer.innerHTML = `
                         <!-- Player Section -->
                         <div class="pt-16 md:pt-20 px-0 md:px-12 max-w-6xl mx-auto">
-                            <div class="video-container shadow-2xl group !rounded-none md:!rounded-lg">
-                                <video id="custom-video" ${videoUrl ? 'src="'+videoUrl+'"' : ''} poster="${posterUrl}" controls controlsList="nodownload" oncontextmenu="return false;" playsinline class="w-full h-full"></video>
-                                ${!videoUrl ? '<div class="absolute inset-0 flex items-center justify-center bg-gray-900"><p>Gagal memuat video</p></div>' : ''}
+                            <div class="video-container shadow-2xl group !rounded-none md:!rounded-lg relative aspect-video bg-black overflow-hidden">
+                                <video id="custom-video" ${videoUrl ? 'src="'+videoUrl+'"' : ''} poster="${posterUrl}" controls controlsList="nodownload" oncontextmenu="return false;" playsinline class="w-full h-full object-contain"></video>
+                                ${!videoUrl ? \`
+                                    <div class="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/90 backdrop-blur-sm px-6 text-center">
+                                        <i class="fas fa-exclamation-circle text-4xl mb-3 text-red-600"></i>
+                                        <p class="text-white font-bold text-lg">Video Tidak Tersedia</p>
+                                        <p class="text-gray-400 text-sm mt-1">Gagal memuat video untuk episode ini. Silakan coba episode lain.</p>
+                                    </div>\` : ''}
                                 <div class="fullscreen-btn hover:scale-110 transition" onclick="toggleFullscreen()">
                                     <i class="fas fa-expand text-white text-lg"></i>
                                 </div>
@@ -102,14 +119,14 @@
                             
                             <!-- Episode Navigation Buttons -->
                             <div class="flex justify-between items-center mt-4 px-4 md:px-0">
-                                <button onclick="window.location.href='/detail.html?id=${bookId}&episode=${currentEp - 1}'" 
-                                        class="flex items-center space-x-2 px-6 py-2 bg-[#2f2f2f] hover:bg-[#3f3f3f] rounded-full transition ${!hasPrev ? 'opacity-0 pointer-events-none' : ''}"
+                                <button onclick="window.location.href='/detail.html?id=\${bookId}&episode=\${currentEp - 1}'" 
+                                        class="flex items-center space-x-2 px-6 py-2 bg-[#2f2f2f] hover:bg-[#3f3f3f] rounded-full transition \${!hasPrev ? 'opacity-0 pointer-events-none' : ''}"
                                         data-testid="button-prev-episode">
                                     <i class="fas fa-chevron-left"></i>
                                     <span>Sebelumnya</span>
                                 </button>
-                                <button onclick="window.location.href='/detail.html?id=${bookId}&episode=${currentEp + 1}'" 
-                                        class="flex items-center space-x-2 px-6 py-2 bg-red-600 hover:bg-red-700 rounded-full transition ${!hasNext ? 'opacity-0 pointer-events-none' : ''}"
+                                <button onclick="window.location.href='/detail.html?id=\${bookId}&episode=\${currentEp + 1}'" 
+                                        class="flex items-center space-x-2 px-6 py-2 bg-red-600 hover:bg-red-700 rounded-full transition \${!hasNext ? 'opacity-0 pointer-events-none' : ''}"
                                         data-testid="button-next-episode">
                                     <span>Berikutnya</span>
                                     <i class="fas fa-chevron-right"></i>
@@ -121,32 +138,34 @@
                         <div class="px-4 md:px-12 py-6 md:py-8 max-w-6xl mx-auto">
                             <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6 mb-6 md:mb-8">
                                 <div>
-                                    <h1 class="text-2xl md:text-5xl font-bold mb-1 md:mb-2">${d.bookName}</h1>
-                                    <p class="text-red-600 font-bold text-base md:text-lg">Episode ${episode}</p>
+                                    <h1 class="text-2xl md:text-5xl font-bold mb-1 md:mb-2">\${d.bookName}</h1>
+                                    <p class="text-red-600 font-bold text-base md:text-lg">Episode \${episode}</p>
                                 </div>
                                 <div class="flex items-center space-x-3 md:space-x-4 text-green-500 font-bold text-xs md:text-base">
                                     <span>98% Match</span>
-                                    <span class="text-gray-400 font-normal">Total: ${d.chapterCount} Eps</span>
-                                    <span class="border border-gray-600 px-1 text-[10px] md:text-xs text-gray-400 font-normal">HD</span>
+                                    <span class="text-gray-400 font-normal">Total: \${d.chapterCount} Eps</span>
+                                    <span class="border border-gray-600 px-1 text-[10px] md:text-xs text-gray-400 font-normal uppercase">HD</span>
                                 </div>
                             </div>
 
                             <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
                                 <div class="lg:col-span-2">
                                     <h3 class="text-xl font-bold mb-4">Sinopsis</h3>
-                                    <p class="text-base md:text-lg leading-relaxed text-gray-300 mb-8 md:mb-12">${d.introduction}</p>
+                                    <p class="text-base md:text-lg leading-relaxed text-gray-300 mb-8 md:mb-12">\${d.introduction || 'Tidak ada deskripsi tersedia.'}</p>
                                     
                                     <h3 class="text-xl md:text-2xl font-bold mb-4 md:mb-6 border-b border-gray-800 pb-2">Pilih Episode</h3>
                                     <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 md:gap-3">
-                                        ${chapters.map(ch => {
-                                            const isActive = (ch.index + 1) == episode;
-                                            return `
-                                                <a href="/detail.html?id=${bookId}&episode=${ch.index + 1}" 
-                                                   class="py-2 md:py-4 rounded text-center transition border text-sm md:text-base ${isActive ? 'bg-red-600 border-red-600 text-white' : 'bg-[#2f2f2f] hover:bg-[#3f3f3f] border-transparent'}">
-                                                    Eps ${ch.index + 1}
+                                        \${chapters.map(ch => {
+                                            const epNum = ch.index + 1;
+                                            const isActive = epNum == episode;
+                                            return \`
+                                                <a href="/detail.html?id=\${bookId}&episode=\${epNum}" 
+                                                   class="py-2 md:py-4 rounded text-center transition border text-sm md:text-base \${isActive ? 'bg-red-600 border-red-600 text-white' : 'bg-[#2f2f2f] hover:bg-[#3f3f3f] border-transparent'}">
+                                                    Eps \${epNum}
                                                 </a>
-                                            `;
+                                            \`;
                                         }).join('')}
+                                        \${chapters.length === 0 ? '<p class="col-span-full text-gray-500 italic">Daftar episode tidak tersedia.</p>' : ''}
                                     </div>
                                 </div>
                                 
@@ -154,16 +173,16 @@
                                     <div class="bg-[#181818] p-6 rounded-lg border border-gray-800">
                                         <div class="mb-4">
                                             <span class="text-gray-500 block mb-1 uppercase tracking-wider text-xs font-bold">Pemeran</span>
-                                            <p class="text-gray-200">${d.performerList.map(p => p.performerName).join(', ')}</p>
+                                            <p class="text-gray-200">\${(d.performerList || []).map(p => p.performerName).join(', ') || 'N/A'}</p>
                                         </div>
                                         <div class="mb-4">
                                             <span class="text-gray-500 block mb-1 uppercase tracking-wider text-xs font-bold">Genre</span>
-                                            <p class="text-gray-200">${d.typeTwoName}</p>
+                                            <p class="text-gray-200">\${d.typeTwoName || 'Drama'}</p>
                                         </div>
                                         <div>
                                             <span class="text-gray-500 block mb-1 uppercase tracking-wider text-xs font-bold">Label</span>
                                             <div class="flex flex-wrap gap-2 mt-2">
-                                                ${d.tags.map(tag => `<span class="bg-[#333] px-2 py-1 rounded text-[10px] text-gray-300">${tag}</span>`).join('')}
+                                                \${(d.tags || []).map(tag => \`<span class="bg-[#333] px-2 py-1 rounded text-[10px] text-gray-300">\${tag}</span>\`).join('')}
                                             </div>
                                         </div>
                                     </div>
@@ -172,11 +191,11 @@
                         </div>
 
                         <!-- Recommendations Section -->
-                        <div class="px-4 md:px-12 py-12 max-w-6xl mx-auto">
+                        <div class="px-4 md:px-12 py-12 max-w-6xl mx-auto mb-20">
                             <h3 class="text-2xl font-bold mb-6 border-b border-gray-800 pb-2">Rekomendasi Untuk Anda</h3>
                             <div id="recommendation-list" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                                 <div class="col-span-full text-center py-10">
-                                    <i class="fas fa-spinner fa-spin text-2xl"></i>
+                                    <i class="fas fa-spinner fa-spin text-2xl text-red-600"></i>
                                 </div>
                             </div>
                         </div>
@@ -186,23 +205,43 @@
                     fetch('/api/recommendations')
                         .then(res => res.json())
                         .then(recResult => {
-                            if (recResult.success) {
+                            if (recResult.success && recResult.data) {
                                 const recContainer = document.getElementById('recommendation-list');
-                                recContainer.innerHTML = recResult.data.map(rec => `
-                                    <div onclick="window.location.href='/detail.html?id=${rec.bookId}'" class="movie-card transition-all duration-300 cursor-pointer group">
-                                        <div class="relative overflow-hidden rounded-sm">
-                                            <img src="${rec.coverWap}" alt="${rec.bookName}" class="w-full h-auto aspect-[2/3] object-cover transition-transform duration-300 group-hover:scale-110">
-                                            ${rec.corner ? `<span class="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-sm">${rec.corner.name}</span>` : ''}
+                                if (recContainer) {
+                                    recContainer.innerHTML = recResult.data.slice(0, 12).map(rec => \`
+                                        <div onclick="window.location.href='/detail.html?id=\${rec.bookId}'" class="movie-card transition-all duration-300 cursor-pointer group">
+                                            <div class="relative overflow-hidden rounded-sm">
+                                                <img src="\${rec.coverWap || rec.cover}" alt="\${rec.bookName}" class="w-full h-auto aspect-[2/3] object-cover transition-transform duration-300 group-hover:scale-110">
+                                                \${rec.corner ? \`<span class="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-sm">\${rec.corner.name}</span>\` : ''}
+                                            </div>
+                                            <p class="mt-2 text-sm font-medium line-clamp-1 group-hover:text-red-500 transition-colors">\${rec.bookName}</p>
                                         </div>
-                                        <p class="mt-2 text-sm font-medium line-clamp-1 group-hover:text-red-500 transition-colors">${rec.bookName}</p>
-                                    </div>
-                                `).join('');
+                                    \`).join('');
+                                }
                             }
-                        });
+                        }).catch(e => console.error('Recommendation fetch error:', e));
+                } else {
+                    throw new Error('Data format mismatch or success: false');
                 }
             } catch (err) {
                 console.error('Fetch detail failed:', err);
-                document.getElementById('detail-content').innerHTML = '<div class="p-20 text-center text-red-500">Gagal memuat konten.</div>';
+                detailContainer.innerHTML = \`
+                    <div class="flex flex-col items-center justify-center min-h-[80vh] px-6 text-center">
+                        <i class="fas fa-exclamation-triangle text-7xl text-red-600 mb-8 animate-bounce"></i>
+                        <h2 class="text-3xl font-bold mb-4">Gagal Memuat Drama</h2>
+                        <p class="text-gray-400 mb-10 max-w-sm mx-auto leading-relaxed">
+                            Maaf, terjadi kesalahan saat mengambil data drama ini. Hal ini bisa disebabkan oleh gangguan koneksi atau konten yang sedang tidak tersedia.
+                        </p>
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <button onclick="window.location.reload()" class="bg-white text-black px-10 py-3 rounded-full font-bold hover:bg-gray-200 transition-all active:scale-95 flex items-center justify-center">
+                                <i class="fas fa-sync-alt mr-2"></i>Coba Lagi
+                            </button>
+                            <button onclick="window.location.href='/'" class="bg-[#2f2f2f] text-white px-10 py-3 rounded-full font-bold hover:bg-[#3f3f3f] transition-all active:scale-95 flex items-center justify-center">
+                                <i class="fas fa-home mr-2"></i>Kembali ke Beranda
+                            </button>
+                        </div>
+                    </div>
+                \`;
             }
         }
 
