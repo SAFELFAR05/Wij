@@ -65,34 +65,10 @@
         const bookId = urlParams.get('id');
         const episode = urlParams.get('episode') || 1;
 
-        async function fetchWithProxy(url) {
-            try {
-                // Using corsproxy.io as an alternative to allorigins
-                const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
-                const response = await fetch(proxyUrl);
-                if (!response.ok) throw new Error('Network response was not ok');
-                const data = await response.json();
-                return data;
-            } catch (err) {
-                console.error('Proxy fetch failed, trying alternative:', err);
-                // Fallback to allorigins if corsproxy fails
-                try {
-                    const altProxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-                    const altResponse = await fetch(altProxyUrl);
-                    const altData = await altResponse.json();
-                    return JSON.parse(altData.contents);
-                } catch (altErr) {
-                    console.error('All proxies failed:', altErr);
-                    throw altErr;
-                }
-            }
-        }
-
         async function fetchDetail() {
             if (!bookId) return window.location.href = '/';
             
             try {
-                // Using backend API
                 const response = await fetch(`/api/dramas/${bookId}`);
                 const result = await response.json();
                 
@@ -100,17 +76,12 @@
                     const d = result.data.drama;
                     const chapters = result.data.chapters;
                     
-                    document.title = `${d.bookName} - ELFARBOX [v1.2.1]`;
+                    document.title = `${d.bookName} - ELFARBOX`;
 
-                    // Fetch stream for current episode via backend
-                    let videoUrl = '';
-                    try {
-                        const streamResponse = await fetch(`/api/stream?bookId=${bookId}&episode=${episode}`);
-                        const streamData = await streamResponse.json();
-                        videoUrl = streamData.status === "success" ? streamData.data.chapter.video.mp4 : '';
-                    } catch (e) {
-                        console.error('Failed to fetch stream:', e);
-                    }
+                    // Fetch stream for current episode
+                    const streamRes = await fetch(`/api/stream?bookId=${bookId}&episode=${episode}`);
+                    const streamData = await streamRes.json();
+                    const videoUrl = streamData.status === "success" ? streamData.data.chapter.video.mp4 : '';
                     const posterUrl = d.coverWap || d.cover;
                     
                     const currentEp = parseInt(episode);
@@ -211,7 +182,7 @@
                         </div>
                     `;
                     
-                    // Fetch recommendations via backend
+                    // Fetch recommendations
                     fetch('/api/recommendations')
                         .then(res => res.json())
                         .then(recResult => {
