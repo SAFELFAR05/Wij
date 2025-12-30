@@ -234,11 +234,17 @@
         let allDramas = [];
         let heroDramaId = null;
 
+        async function fetchWithProxy(url) {
+            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+            const response = await fetch(proxyUrl);
+            const data = await response.json();
+            return JSON.parse(data.contents);
+        }
+
         async function fetchDramas() {
             try {
                 // Fetch main dramas
-                const response = await fetch('/api/dramas');
-                const result = await response.json();
+                const result = await fetchWithProxy('https://dramabox-api-rho.vercel.app/api/home');
                 if (result.success) {
                     allDramas = result.data.book;
                     renderDramas(allDramas);
@@ -246,8 +252,7 @@
                 }
 
                 // Fetch recommendations
-                const recResponse = await fetch('/api/recommendations');
-                const recResult = await recResponse.json();
+                const recResult = await fetchWithProxy('https://dramabox-api-rho.vercel.app/api/recommend');
                 if (recResult.success) {
                     renderRecommendations(recResult.data);
                 }
@@ -407,8 +412,7 @@
             // Debounce API calls
             searchTimeout = setTimeout(async () => {
                 try {
-                    const response = await fetch(`/api/search?keyword=${encodeURIComponent(term)}`);
-                    const result = await response.json();
+                    const result = await fetchWithProxy(`https://dramabox-api-rho.vercel.app/api/search?keyword=${encodeURIComponent(term)}`);
                     if (result.success) {
                         renderSearchResults(result.data.book, term);
                     }

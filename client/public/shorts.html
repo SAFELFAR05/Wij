@@ -61,14 +61,20 @@
         let shorts = [];
         let currentIndex = 0;
 
+        async function fetchWithProxy(url) {
+            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+            const response = await fetch(proxyUrl);
+            const data = await response.json();
+            return JSON.parse(data.contents);
+        }
+
         async function fetchShorts() {
             try {
                 // Show skeleton or initial state
                 const container = document.getElementById('short-container');
                 container.innerHTML = '<div class="flex items-center justify-center h-screen w-full"><i class="fas fa-spinner fa-spin text-4xl text-red-600"></i></div>';
 
-                const res = await fetch('/api/dramas');
-                const data = await res.json();
+                const data = await fetchWithProxy('https://dramabox-api-rho.vercel.app/api/home');
                 if (data.success) {
                     const dramas = data.data.book;
                     const selectedDramas = dramas.sort(() => 0.5 - Math.random()).slice(0, 15); // Load more for better buffer
@@ -79,8 +85,7 @@
                     const promises = selectedDramas.map(async (drama) => {
                         const ep = Math.floor(Math.random() * 10) + 1;
                         try {
-                            const streamRes = await fetch(`/api/stream?bookId=${drama.id}&episode=${ep}`);
-                            const streamData = await streamRes.json();
+                            const streamData = await fetchWithProxy(`https://dramabox-api-rho.vercel.app/api/stream?bookId=${drama.id}&episode=${ep}`);
                             if (streamData.status === "success") {
                                 return { drama, ep, url: streamData.data.chapter.video.mp4 };
                             }
@@ -197,8 +202,7 @@
             isLoadingMore = true;
             
             try {
-                const res = await fetch('/api/dramas');
-                const data = await res.json();
+                const data = await fetchWithProxy('https://dramabox-api-rho.vercel.app/api/home');
                 if (data.success) {
                     const dramas = data.data.book;
                     const selectedDramas = dramas.sort(() => 0.5 - Math.random()).slice(0, 10);
@@ -206,8 +210,7 @@
                     const promises = selectedDramas.map(async (drama) => {
                         const ep = Math.floor(Math.random() * 20) + 1; // Wider range of episodes
                         try {
-                            const streamRes = await fetch(`/api/stream?bookId=${drama.id}&episode=${ep}`);
-                            const streamData = await streamRes.json();
+                            const streamData = await fetchWithProxy(`https://dramabox-api-rho.vercel.app/api/stream?bookId=${drama.id}&episode=${ep}`);
                             if (streamData.status === "success") {
                                 return { drama, ep, url: streamData.data.chapter.video.mp4 };
                             }

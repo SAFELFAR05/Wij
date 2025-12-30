@@ -65,22 +65,27 @@
         const bookId = urlParams.get('id');
         const episode = urlParams.get('episode') || 1;
 
+        async function fetchWithProxy(url) {
+            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+            const response = await fetch(proxyUrl);
+            const data = await response.json();
+            return JSON.parse(data.contents);
+        }
+
         async function fetchDetail() {
             if (!bookId) return window.location.href = '/';
             
             try {
-                const response = await fetch(`/api/dramas/${bookId}`);
-                const result = await response.json();
+                const result = await fetchWithProxy(`https://dramabox-api-rho.vercel.app/api/detail?bookId=${bookId}`);
                 
                 if (result.success) {
                     const d = result.data.drama;
                     const chapters = result.data.chapters;
                     
-                    document.title = `${d.bookName} - ELFARBOX`;
+                    document.title = `${d.bookName} - ELFARBOX [v1.2.1]`;
 
                     // Fetch stream for current episode
-                    const streamRes = await fetch(`/api/stream?bookId=${bookId}&episode=${episode}`);
-                    const streamData = await streamRes.json();
+                    const streamData = await fetchWithProxy(`https://dramabox-api-rho.vercel.app/api/stream?bookId=${bookId}&episode=${episode}`);
                     const videoUrl = streamData.status === "success" ? streamData.data.chapter.video.mp4 : '';
                     const posterUrl = d.coverWap || d.cover;
                     
@@ -183,8 +188,7 @@
                     `;
                     
                     // Fetch recommendations
-                    fetch('/api/recommendations')
-                        .then(res => res.json())
+                    fetchWithProxy('https://dramabox-api-rho.vercel.app/api/recommend')
                         .then(recResult => {
                             if (recResult.success) {
                                 const recContainer = document.getElementById('recommendation-list');
