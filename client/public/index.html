@@ -258,16 +258,18 @@
 
         async function fetchDramas() {
             try {
-                // Fetch main dramas
-                const result = await fetchWithProxy('https://dramabox-api-rho.vercel.app/api/home');
+                // Fetch main dramas via backend
+                const response = await fetch('/api/dramas');
+                const result = await response.json();
                 if (result.success) {
                     allDramas = result.data.book;
                     renderDramas(allDramas);
                     setupHero(allDramas[0]);
                 }
 
-                // Fetch recommendations
-                const recResult = await fetchWithProxy('https://dramabox-api-rho.vercel.app/api/recommend');
+                // Fetch recommendations via backend
+                const recResponse = await fetch('/api/recommendations');
+                const recResult = await recResponse.json();
                 if (recResult.success) {
                     renderRecommendations(recResult.data);
                 }
@@ -361,7 +363,8 @@
             // Debounce API calls
             searchTimeout = setTimeout(async () => {
                 try {
-                    const result = await fetchWithProxy(`https://dramabox-api-rho.vercel.app/api/search?keyword=${encodeURIComponent(term)}`);
+                    const response = await fetch(`/api/search?keyword=${encodeURIComponent(term)}`);
+                    const result = await response.json();
                     if (result.success) {
                         renderSearchResults(result.data.book, term);
                     }
