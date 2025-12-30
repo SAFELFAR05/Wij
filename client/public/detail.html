@@ -61,6 +61,7 @@
     </div>
 
     <script>
+        const API_BASE = 'https://dramabox.cocspedsafliz.workers.dev';
         const urlParams = new URLSearchParams(window.location.search);
         const bookId = urlParams.get('id');
         const episode = urlParams.get('episode') || 1;
@@ -69,7 +70,7 @@
             if (!bookId) return window.location.href = '/';
             
             try {
-                const response = await fetch(`/api/dramas/${bookId}`);
+                const response = await fetch(`${API_BASE}/detail/${bookId}/v2`);
                 const result = await response.json();
                 
                 if (result.success) {
@@ -79,7 +80,7 @@
                     document.title = `${d.bookName} - ELFARBOX`;
 
                     // Fetch stream for current episode
-                    const streamRes = await fetch(`/api/stream?bookId=${bookId}&episode=${episode}`);
+                    const streamRes = await fetch(`${API_BASE}/stream?bookId=${bookId}&episode=${episode}`);
                     const streamData = await streamRes.json();
                     const videoUrl = streamData.status === "success" ? streamData.data.chapter.video.mp4 : '';
                     const posterUrl = d.coverWap || d.cover;
@@ -183,7 +184,7 @@
                     `;
                     
                     // Fetch recommendations
-                    fetch('/api/recommendations')
+                    fetch(`${API_BASE}/recommend`)
                         .then(res => res.json())
                         .then(recResult => {
                             if (recResult.success) {
