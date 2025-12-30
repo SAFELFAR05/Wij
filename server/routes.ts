@@ -15,7 +15,7 @@ export async function registerRoutes(
   // API Route
   app.get('/api/dramas', async (req, res) => {
     try {
-      const response = await fetch("https://dramabox.cocspedsafliz.workers.dev/vip/home");
+      const response = await fetch("https://dramabox.cocspedsafliz.workers.dev/home");
       if (!response.ok) throw new Error(`External API returned ${response.status}`);
       const data = await response.json();
       res.json(data);
@@ -29,7 +29,7 @@ export async function registerRoutes(
   app.get('/api/dramas/:bookId', async (req, res) => {
     try {
       const { bookId } = req.params;
-      const response = await fetch(`https://dramabox.cocspedsafliz.workers.dev/vip/detail/${bookId}/v2`);
+      const response = await fetch(`https://dramabox.cocspedsafliz.workers.dev/detail/${bookId}/v2`);
       if (!response.ok) throw new Error(`External API returned ${response.status}`);
       const data = await response.json();
       res.json(data);
@@ -43,7 +43,7 @@ export async function registerRoutes(
   app.get('/api/stream', async (req, res) => {
     try {
       const { bookId, episode } = req.query;
-      const response = await fetch(`https://dramabox.cocspedsafliz.workers.dev/vip/stream?bookId=${bookId}&episode=${episode}`);
+      const response = await fetch(`https://dramabox.cocspedsafliz.workers.dev/stream?bookId=${bookId}&episode=${episode}`);
       if (!response.ok) throw new Error(`External API returned ${response.status}`);
       const data = await response.json();
       res.json(data);
@@ -56,7 +56,7 @@ export async function registerRoutes(
   // API Route - Recommendations
   app.get('/api/recommendations', async (req, res) => {
     try {
-      const response = await fetch("https://dramabox.cocspedsafliz.workers.dev/vip/recommend");
+      const response = await fetch("https://dramabox.cocspedsafliz.workers.dev/recommend");
       if (!response.ok) throw new Error(`External API returned ${response.status}`);
       const data = await response.json();
       res.json(data);
@@ -69,7 +69,7 @@ export async function registerRoutes(
   // API Route - VIP
   app.get('/api/vip', async (req, res) => {
     try {
-      const response = await fetch("https://dramabox.cocspedsafliz.workers.dev/vip/vip");
+      const response = await fetch("https://dramabox.cocspedsafliz.workers.dev/vip");
       if (!response.ok) throw new Error(`External API returned ${response.status}`);
       const data = await response.json();
       res.json(data);
@@ -82,7 +82,7 @@ export async function registerRoutes(
   // API Route - Dubbed
   app.get('/api/dubbed', async (req, res) => {
     try {
-      const response = await fetch("https://dramabox.cocspedsafliz.workers.dev/vip/dubbed");
+      const response = await fetch("https://dramabox.cocspedsafliz.workers.dev/dubbed");
       if (!response.ok) throw new Error(`External API returned ${response.status}`);
       const data = await response.json();
       res.json(data);
@@ -96,7 +96,7 @@ export async function registerRoutes(
   app.get('/api/search', async (req, res) => {
     try {
       const { keyword } = req.query;
-      const response = await fetch(`https://dramabox.cocspedsafliz.workers.dev/vip/search?keyword=${encodeURIComponent(keyword as string)}`);
+      const response = await fetch(`https://dramabox.cocspedsafliz.workers.dev/search?keyword=${encodeURIComponent(keyword as string)}`);
       if (!response.ok) throw new Error(`External API returned ${response.status}`);
       const data = await response.json();
       res.json(data);
