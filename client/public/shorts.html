@@ -154,6 +154,14 @@
                             const nextVideo = nextItem.querySelector('video');
                             if (nextVideo) nextVideo.preload = "auto";
                         }
+                        
+                        // Infinity Scroll: If we're near the end, load more
+                        const container = document.getElementById('short-container');
+                        const allItems = container.querySelectorAll('.short-item');
+                        const currentIndex = Array.from(allItems).indexOf(entry.target);
+                        if (currentIndex >= allItems.length - 3) {
+                            loadMoreShorts();
+                        }
                     } else {
                         video.pause();
                         video.currentTime = 0;
@@ -164,6 +172,48 @@
             document.querySelectorAll('.short-item').forEach(item => {
                 observer.observe(item);
             });
+        }
+
+        let isLoadingMore = false;
+        async function loadMoreShorts() {
+            if (isLoadingMore) return;
+            isLoadingMore = true;
+            
+            try {
+                const res = await fetch('/api/dramas');
+                const data = await res.json();
+                if (data.success) {
+                    const dramas = data.data.book;
+                    const selectedDramas = dramas.sort(() => 0.5 - Math.random()).slice(0, 10);
+                    
+                    const promises = selectedDramas.map(async (drama) => {
+                        const ep = Math.floor(Math.random() * 20) + 1; // Wider range of episodes
+                        try {
+                            const streamRes = await fetch(`/api/stream?bookId=${drama.id}&episode=${ep}`);
+                            const streamData = await streamRes.json();
+                            if (streamData.status === "success") {
+                                return { drama, ep, url: streamData.data.chapter.video.mp4 };
+                            }
+                        } catch (e) {
+                            return null;
+                        }
+                    });
+
+                    const results = await Promise.all(promises);
+                    const validResults = results.filter(r => r !== null);
+                    
+                    validResults.forEach(res => {
+                        renderShort(res.drama, res.ep, res.url, false);
+                    });
+                    
+                    // Re-observe new items
+                    setupIntersectionObserver();
+                }
+            } catch (err) {
+                console.error('Failed to load more shorts:', err);
+            } finally {
+                isLoadingMore = false;
+            }
         }
 
         fetchShorts();
