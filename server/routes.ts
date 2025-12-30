@@ -29,7 +29,7 @@ export async function registerRoutes(
   app.get('/api/dramas/:bookId', async (req, res) => {
     try {
       const { bookId } = req.params;
-      const response = await fetch(`https://dramabox-api-rho.vercel.app/api/detail/${bookId}/v2`);
+      const response = await fetch(`https://dramabox-api-rho.vercel.app/api/detail?bookId=${bookId}`);
       if (!response.ok) throw new Error(`External API returned ${response.status}`);
       const data = await response.json();
       res.json(data);

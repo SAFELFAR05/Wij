@@ -92,7 +92,9 @@
             if (!bookId) return window.location.href = '/';
             
             try {
-                const result = await fetchWithProxy(`https://dramabox-api-rho.vercel.app/api/detail?bookId=${bookId}`);
+                // Using backend API
+                const response = await fetch(`/api/dramas/${bookId}`);
+                const result = await response.json();
                 
                 if (result.success) {
                     const d = result.data.drama;
@@ -100,10 +102,11 @@
                     
                     document.title = `${d.bookName} - ELFARBOX [v1.2.1]`;
 
-                    // Fetch stream for current episode
+                    // Fetch stream for current episode via backend
                     let videoUrl = '';
                     try {
-                        const streamData = await fetchWithProxy(`https://dramabox-api-rho.vercel.app/api/stream?bookId=${bookId}&episode=${episode}`);
+                        const streamResponse = await fetch(`/api/stream?bookId=${bookId}&episode=${episode}`);
+                        const streamData = await streamResponse.json();
                         videoUrl = streamData.status === "success" ? streamData.data.chapter.video.mp4 : '';
                     } catch (e) {
                         console.error('Failed to fetch stream:', e);
@@ -208,8 +211,9 @@
                         </div>
                     `;
                     
-                    // Fetch recommendations
-                    fetchWithProxy('https://dramabox-api-rho.vercel.app/api/recommend')
+                    // Fetch recommendations via backend
+                    fetch('/api/recommendations')
+                        .then(res => res.json())
                         .then(recResult => {
                             if (recResult.success) {
                                 const recContainer = document.getElementById('recommendation-list');
