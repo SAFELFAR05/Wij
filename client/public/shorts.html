@@ -69,38 +69,31 @@
                 container.innerHTML = '<div class="flex items-center justify-center h-screen w-full"><i class="fas fa-spinner fa-spin text-4xl text-red-600"></i></div>';
 
                 const res = await fetch(`${API_BASE}/home`);
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+                }
                 const data = await res.json();
-                if (data.success) {
+                console.log('Shorts data:', data);
+                
+                if (data.success && data.data && data.data.book) {
                     const dramas = data.data.book;
-                    const selectedDramas = dramas.sort(() => 0.5 - Math.random()).slice(0, 15); // Load more for better buffer
+                    const selectedDramas = dramas.sort(() => 0.5 - Math.random()).slice(0, 20);
                     
                     container.innerHTML = '';
-
-                    // Load video URLs in parallel but render sequentially to show titles quickly
-                    const promises = selectedDramas.map(async (drama) => {
-                        const ep = Math.floor(Math.random() * 10) + 1;
-                        try {
-                            const streamRes = await fetch(`${API_BASE}/stream?bookId=${drama.bookId}&episode=${ep}`);
-                            const streamData = await streamRes.json();
-                            if (streamData.status === "success") {
-                                return { drama, ep, url: streamData.data.chapter.video.mp4 };
-                            }
-                        } catch (e) {
-                            return null;
-                        }
-                    });
-
-                    const results = await Promise.all(promises);
-                    const validResults = results.filter(r => r !== null);
                     
-                    validResults.forEach((res, index) => {
-                        renderShort(res.drama, res.ep, res.url, index === 0); // Preload first video
+                    // Render all dramas with poster as fallback
+                    selectedDramas.forEach((drama, index) => {
+                        renderShort(drama, 1, null, index === 0); // No video, poster only
                     });
                     
                     setupIntersectionObserver();
+                } else {
+                    container.innerHTML = '<div class="flex items-center justify-center h-screen w-full text-red-500"><p>Gagal memuat data shorts</p></div>';
                 }
             } catch (err) {
                 console.error('Failed to fetch shorts:', err);
+                const container = document.getElementById('short-container');
+                container.innerHTML = `<div class="flex items-center justify-center h-screen w-full text-red-500"><p>${err.message}</p></div>`;
             }
         }
 
@@ -109,20 +102,28 @@
             const div = document.createElement('div');
             div.className = 'short-item';
             const posterUrl = drama.coverWap || drama.cover;
+            const dramaId = drama.bookId || drama.id;
+            const dramaName = drama.bookName || drama.name;
+            
+            const videoHTML = videoUrl ? `
+                <video loop playsinline ${isFirst ? 'preload="auto"' : 'preload="metadata"'} poster="${posterUrl}" controlsList="nodownload" oncontextmenu="return false;" class="opacity-0 transition-opacity duration-500">
+                    <source src="${videoUrl}" type="video/mp4">
+                </video>
+                <div class="video-loader absolute inset-0 flex items-center justify-center bg-black z-0">
+                    <i class="fas fa-spinner fa-spin text-2xl text-red-600"></i>
+                </div>
+            ` : `
+                <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('${posterUrl}');"></div>
+                <div class="absolute inset-0 bg-black/30"></div>
+            `;
+            
             div.innerHTML = `
                 <div class="video-wrapper">
-                    <!-- Added poster image as placeholder -->
-                    <video loop playsinline ${isFirst ? 'preload="auto"' : 'preload="metadata"'} poster="${posterUrl}" controlsList="nodownload" oncontextmenu="return false;" class="opacity-0 transition-opacity duration-500">
-                        <source src="${videoUrl}" type="video/mp4">
-                    </video>
-                    <!-- Loading state per video -->
-                    <div class="video-loader absolute inset-0 flex items-center justify-center bg-black z-0">
-                        <i class="fas fa-spinner fa-spin text-2xl text-red-600"></i>
-                    </div>
+                    ${videoHTML}
                     <div class="overlay">
-                        <h3 class="text-lg font-bold">${drama.bookName}</h3>
+                        <h3 class="text-lg font-bold">${dramaName}</h3>
                         <p class="text-sm text-gray-300">Episode ${ep}</p>
-                        <button onclick="window.location.href='/detail.html?id=${drama.bookId}'" class="mt-3 bg-red-600 px-4 py-1 rounded-full text-xs font-bold">Tonton Lengkap</button>
+                        <button onclick="window.location.href='/detail.html?id=${dramaId}'" class="mt-3 bg-red-600 px-4 py-1 rounded-full text-xs font-bold">Tonton Lengkap</button>
                     </div>
                     <div class="actions">
                         <div class="action-btn">
@@ -144,18 +145,20 @@
             const video = div.querySelector('video');
             const loader = div.querySelector('.video-loader');
             
-            video.onplaying = () => {
-                video.classList.remove('opacity-0');
-                loader.style.display = 'none';
-            };
+            if (video && loader) {
+                video.onplaying = () => {
+                    video.classList.remove('opacity-0');
+                    loader.style.display = 'none';
+                };
 
-            video.onclick = () => {
-                if (video.paused) {
-                    video.play();
-                } else {
-                    video.pause();
-                }
-            };
+                video.onclick = () => {
+                    if (video.paused) {
+                        video.play();
+                    } else {
+                        video.pause();
+                    }
+                };
+            }
 
             container.appendChild(div);
         }
@@ -204,24 +207,8 @@
                     const dramas = data.data.book;
                     const selectedDramas = dramas.sort(() => 0.5 - Math.random()).slice(0, 10);
                     
-                    const promises = selectedDramas.map(async (drama) => {
-                        const ep = Math.floor(Math.random() * 20) + 1; // Wider range of episodes
-                        try {
-                            const streamRes = await fetch(`${API_BASE}/stream?bookId=${drama.bookId}&episode=${ep}`);
-                            const streamData = await streamRes.json();
-                            if (streamData.status === "success") {
-                                return { drama, ep, url: streamData.data.chapter.video.mp4 };
-                            }
-                        } catch (e) {
-                            return null;
-                        }
-                    });
-
-                    const results = await Promise.all(promises);
-                    const validResults = results.filter(r => r !== null);
-                    
-                    validResults.forEach(res => {
-                        renderShort(res.drama, res.ep, res.url, false);
+                    selectedDramas.forEach(drama => {
+                        renderShort(drama, 1, null, false); // Poster only
                     });
                     
                     // Re-observe new items
