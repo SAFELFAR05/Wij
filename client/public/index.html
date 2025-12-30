@@ -376,6 +376,11 @@
         }
 
         // Search functionality
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('showProfile') === 'true') {
+            showProfile();
+        }
+
         let searchTimeout;
         document.getElementById('search-input').addEventListener('input', (e) => {
             const term = e.target.value.trim();
