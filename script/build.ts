@@ -1,9 +1,5 @@
 import { build as esbuild } from "esbuild";
 import { rm, readFile, cp } from "fs/promises";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // server deps to bundle to reduce openat(2) syscalls
 // which helps cold start times
@@ -40,9 +36,7 @@ async function buildAll() {
 
   console.log("copying static files...");
   // Copy client/public to dist/public
-  const clientPublic = path.resolve(__dirname, "..", "client", "public");
-  const distPublic = path.resolve(__dirname, "..", "dist", "public");
-  await cp(clientPublic, distPublic, { recursive: true });
+  await cp("client/public", "dist/public", { recursive: true });
   console.log("✓ static files copied");
 
   console.log("building server...");
