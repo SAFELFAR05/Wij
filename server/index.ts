@@ -82,7 +82,7 @@ app.use((req, res, next) => {
     serveStatic(app);
   } else {
     // Simplified: serve static public folder even in development
-    app.use(express.static(path.resolve(__dirname, "client", "public")));
+    app.use(express.static(path.resolve(process.cwd(), "client", "public")));
     await setupVite(httpServer, app);
   }
 
