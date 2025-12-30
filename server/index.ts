@@ -77,7 +77,8 @@ app.use((req, res, next) => {
     serveStatic(app);
   } else {
     // Simplified: serve static public folder even in development
-    app.use(express.static("client/public"));
+    app.use(express.static(path.resolve(import.meta.dirname, "..", "client", "public")));
+    await setupVite(httpServer, app);
   }
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
