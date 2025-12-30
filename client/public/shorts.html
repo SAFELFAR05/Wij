@@ -55,27 +55,38 @@
 
         async function fetchShorts() {
             try {
-                // Fetch random dramas first
+                // Show skeleton or initial state
+                const container = document.getElementById('short-container');
+                container.innerHTML = '<div class="flex items-center justify-center h-screen w-full"><i class="fas fa-spinner fa-spin text-4xl text-red-600"></i></div>';
+
                 const res = await fetch('/api/dramas');
                 const data = await res.json();
                 if (data.success) {
                     const dramas = data.data.book;
-                    // Shuffle and pick 10
-                    const selectedDramas = dramas.sort(() => 0.5 - Math.random()).slice(0, 10);
+                    const selectedDramas = dramas.sort(() => 0.5 - Math.random()).slice(0, 15); // Load more for better buffer
                     
-                    const container = document.getElementById('short-container');
                     container.innerHTML = '';
 
-                    for (const drama of selectedDramas) {
-                        // For each drama, pick a random episode between 1-10
+                    // Load video URLs in parallel but render sequentially to show titles quickly
+                    const promises = selectedDramas.map(async (drama) => {
                         const ep = Math.floor(Math.random() * 10) + 1;
-                        const streamRes = await fetch(`/api/stream?bookId=${drama.id}&episode=${ep}`);
-                        const streamData = await streamRes.json();
-                        
-                        if (streamData.status === "success") {
-                            renderShort(drama, ep, streamData.data.chapter.video.mp4);
+                        try {
+                            const streamRes = await fetch(`/api/stream?bookId=${drama.id}&episode=${ep}`);
+                            const streamData = await streamRes.json();
+                            if (streamData.status === "success") {
+                                return { drama, ep, url: streamData.data.chapter.video.mp4 };
+                            }
+                        } catch (e) {
+                            return null;
                         }
-                    }
+                    });
+
+                    const results = await Promise.all(promises);
+                    const validResults = results.filter(r => r !== null);
+                    
+                    validResults.forEach((res, index) => {
+                        renderShort(res.drama, res.ep, res.url, index === 0); // Preload first video
+                    });
                     
                     setupIntersectionObserver();
                 }
@@ -84,15 +95,20 @@
             }
         }
 
-        function renderShort(drama, ep, videoUrl) {
+        function renderShort(drama, ep, videoUrl, isFirst) {
             const container = document.getElementById('short-container');
             const div = document.createElement('div');
             div.className = 'short-item';
             div.innerHTML = `
                 <div class="video-wrapper">
-                    <video loop playsinline preload="auto">
+                    <!-- Added poster image as placeholder -->
+                    <video loop playsinline ${isFirst ? 'preload="auto"' : 'preload="metadata"'} class="opacity-0 transition-opacity duration-500">
                         <source src="${videoUrl}" type="video/mp4">
                     </video>
+                    <!-- Loading state per video -->
+                    <div class="video-loader absolute inset-0 flex items-center justify-center bg-black z-0">
+                        <i class="fas fa-spinner fa-spin text-2xl text-red-600"></i>
+                    </div>
                     <div class="overlay">
                         <h3 class="text-lg font-bold">${drama.name}</h3>
                         <p class="text-sm text-gray-300">Episode ${ep}</p>
@@ -114,6 +130,15 @@
                     </div>
                 </div>
             `;
+
+            const video = div.querySelector('video');
+            const loader = div.querySelector('.video-loader');
+            
+            video.onplaying = () => {
+                video.classList.remove('opacity-0');
+                loader.style.display = 'none';
+            };
+
             container.appendChild(div);
         }
 
@@ -123,12 +148,18 @@
                     const video = entry.target.querySelector('video');
                     if (entry.isIntersecting) {
                         video.play();
+                        // Preload next video
+                        const nextItem = entry.target.nextElementSibling;
+                        if (nextItem) {
+                            const nextVideo = nextItem.querySelector('video');
+                            if (nextVideo) nextVideo.preload = "auto";
+                        }
                     } else {
                         video.pause();
                         video.currentTime = 0;
                     }
                 });
-            }, { threshold: 0.7 });
+            }, { threshold: 0.6 });
 
             document.querySelectorAll('.short-item').forEach(item => {
                 observer.observe(item);
