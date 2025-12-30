@@ -18,7 +18,6 @@
         .action-btn i { font-size: 24px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
         .action-btn span { font-size: 12px; font-weight: bold; }
         .logo-shorts { position: fixed; top: 20px; left: 20px; z-index: 100; }
-        /* Bottom Nav shadow */
         .bottom-nav { background: rgba(0,0,0,0.9); border-top: 1px solid #333; position: fixed; bottom: 0; width: 100%; z-index: 50; }
     </style>
 </head>
@@ -27,7 +26,6 @@
         <h1 class="text-red-600 text-xl md:text-2xl font-bold tracking-tighter uppercase cursor-pointer" onclick="window.location.href='/'">ELFAR<span class="italic">BOX</span></h1>
     </div>
     <div class="short-container" id="short-container">
-        <!-- Shorts will be loaded here -->
         <div class="flex items-center justify-center h-screen w-full">
             <i class="fas fa-spinner fa-spin text-4xl text-red-600"></i>
         </div>
@@ -59,67 +57,86 @@
 
     <script>
         const API_BASE = 'https://dramabox.cocspedsafliz.workers.dev';
-        let shorts = [];
-        let currentIndex = 0;
+        let allDramas = [];
+        let isLoadingMore = false;
 
-        async function fetchShorts() {
+        // Fetch and mix dramas from multiple sources
+        async function fetchAllDramas() {
             try {
-                // Show skeleton or initial state
-                const container = document.getElementById('short-container');
-                container.innerHTML = '<div class="flex items-center justify-center h-screen w-full"><i class="fas fa-spinner fa-spin text-4xl text-red-600"></i></div>';
+                const [homeRes, dubbedRes, vipRes] = await Promise.all([
+                    fetch(`${API_BASE}/home`),
+                    fetch(`${API_BASE}/dubbed`),
+                    fetch(`${API_BASE}/vip`)
+                ]);
 
-                const res = await fetch(`${API_BASE}/home`);
-                if (!res.ok) {
-                    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-                }
-                const data = await res.json();
-                console.log('Shorts data:', data);
-                
-                if (data.success && data.data && data.data.book) {
-                    const dramas = data.data.book;
-                    const selectedDramas = dramas.sort(() => 0.5 - Math.random()).slice(0, 20);
-                    
-                    container.innerHTML = '';
-                    
-                    // Render all dramas with poster as fallback
-                    selectedDramas.forEach((drama, index) => {
-                        renderShort(drama, 1, null, index === 0); // No video, poster only
+                const homeData = await homeRes.json();
+                const dubbedData = await dubbedRes.json();
+                const vipData = await vipRes.json();
+
+                let dramas = [];
+                if (homeData.success && homeData.data?.book) dramas.push(...homeData.data.book);
+                if (dubbedData.success && dubbedData.data?.data?.classifyBookList?.records) dramas.push(...dubbedData.data.data.classifyBookList.records);
+                if (vipData.success && vipData.data?.data?.columnVoList) {
+                    vipData.data.data.columnVoList.forEach(col => {
+                        if (col.bookList) dramas.push(...col.bookList);
                     });
-                    
-                    setupIntersectionObserver();
-                } else {
-                    container.innerHTML = '<div class="flex items-center justify-center h-screen w-full text-red-500"><p>Gagal memuat data shorts</p></div>';
                 }
+
+                // Shuffle and remove duplicates
+                dramas = [...new Map(dramas.map(d => [d.bookId || d.id, d])).values()];
+                allDramas = dramas.sort(() => Math.random() - 0.5);
+                
+                console.log(`Total dramas loaded: ${allDramas.length}`);
+                return dramas.sort(() => Math.random() - 0.5).slice(0, 10);
             } catch (err) {
-                console.error('Failed to fetch shorts:', err);
-                const container = document.getElementById('short-container');
-                container.innerHTML = `<div class="flex items-center justify-center h-screen w-full text-red-500"><p>${err.message}</p></div>`;
+                console.error('Failed to fetch dramas:', err);
+                return [];
             }
         }
 
-        function renderShort(drama, ep, videoUrl, isFirst) {
+        // Fetch stream and render
+        async function renderDramaWithStream(drama) {
+            const dramaId = drama.bookId || drama.id;
+            const dramaName = drama.bookName || drama.name;
+            const posterUrl = drama.coverWap || drama.cover;
+
+            // Try episodes 1-3 to get a valid stream
+            let videoUrl = null;
+            for (let ep = 1; ep <= 3; ep++) {
+                try {
+                    const streamRes = await fetch(`${API_BASE}/stream?bookId=${dramaId}&episode=${ep}`);
+                    if (!streamRes.ok) continue;
+                    const streamData = await streamRes.json();
+                    if (streamData.status === "success" && streamData.data?.chapter?.video?.mp4) {
+                        videoUrl = streamData.data.chapter.video.mp4;
+                        break;
+                    }
+                } catch (e) {
+                    continue;
+                }
+            }
+
+            renderShort(dramaName, dramaId, posterUrl, videoUrl, 1);
+        }
+
+        function renderShort(dramaName, dramaId, posterUrl, videoUrl, ep) {
             const container = document.getElementById('short-container');
             const div = document.createElement('div');
             div.className = 'short-item';
-            const posterUrl = drama.coverWap || drama.cover;
-            const dramaId = drama.bookId || drama.id;
-            const dramaName = drama.bookName || drama.name;
-            
-            const videoHTML = videoUrl ? `
-                <video loop playsinline ${isFirst ? 'preload="auto"' : 'preload="metadata"'} poster="${posterUrl}" controlsList="nodownload" oncontextmenu="return false;" class="opacity-0 transition-opacity duration-500">
-                    <source src="${videoUrl}" type="video/mp4">
-                </video>
-                <div class="video-loader absolute inset-0 flex items-center justify-center bg-black z-0">
-                    <i class="fas fa-spinner fa-spin text-2xl text-red-600"></i>
-                </div>
-            ` : `
-                <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('${posterUrl}');"></div>
-                <div class="absolute inset-0 bg-black/30"></div>
-            `;
-            
+
             div.innerHTML = `
                 <div class="video-wrapper">
-                    ${videoHTML}
+                    ${videoUrl ? `
+                        <video loop playsinline poster="${posterUrl}" controlsList="nodownload" oncontextmenu="return false;" class="opacity-0 transition-opacity duration-500">
+                            <source src="${videoUrl}" type="video/mp4">
+                        </video>
+                        <div class="video-loader absolute inset-0 flex items-center justify-center bg-black z-0">
+                            <i class="fas fa-spinner fa-spin text-2xl text-red-600"></i>
+                        </div>
+                    ` : `
+                        <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('${posterUrl}');"></div>
+                        <div class="absolute inset-0 bg-black/40"></div>
+                    `}
                     <div class="overlay">
                         <h3 class="text-lg font-bold">${dramaName}</h3>
                         <p class="text-sm text-gray-300">Episode ${ep}</p>
@@ -143,12 +160,11 @@
             `;
 
             const video = div.querySelector('video');
-            const loader = div.querySelector('.video-loader');
-            
-            if (video && loader) {
+            if (video) {
+                const loader = div.querySelector('.video-loader');
                 video.onplaying = () => {
                     video.classList.remove('opacity-0');
-                    loader.style.display = 'none';
+                    if (loader) loader.style.display = 'none';
                 };
 
                 video.onclick = () => {
@@ -166,17 +182,13 @@
         function setupIntersectionObserver() {
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
-                    const video = entry.target.querySelector('video');
+                    const video = entry.target?.querySelector('video');
                     if (entry.isIntersecting) {
-                        video.play();
-                        // Preload next video
-                        const nextItem = entry.target.nextElementSibling;
-                        if (nextItem) {
-                            const nextVideo = nextItem.querySelector('video');
-                            if (nextVideo) nextVideo.preload = "auto";
+                        if (video && video.play) {
+                            video.play().catch(() => {});
                         }
                         
-                        // Infinity Scroll: If we're near the end, load more
+                        // Load more when near the end
                         const container = document.getElementById('short-container');
                         const allItems = container.querySelectorAll('.short-item');
                         const currentIndex = Array.from(allItems).indexOf(entry.target);
@@ -184,8 +196,12 @@
                             loadMoreShorts();
                         }
                     } else {
-                        video.pause();
-                        video.currentTime = 0;
+                        if (video && video.pause) {
+                            try {
+                                video.pause();
+                                video.currentTime = 0;
+                            } catch (e) {}
+                        }
                     }
                 });
             }, { threshold: 0.6 });
@@ -195,25 +211,24 @@
             });
         }
 
-        let isLoadingMore = false;
         async function loadMoreShorts() {
             if (isLoadingMore) return;
             isLoadingMore = true;
-            
+
             try {
-                const res = await fetch(`${API_BASE}/home`);
-                const data = await res.json();
-                if (data.success) {
-                    const dramas = data.data.book;
-                    const selectedDramas = dramas.sort(() => 0.5 - Math.random()).slice(0, 10);
-                    
-                    selectedDramas.forEach(drama => {
-                        renderShort(drama, 1, null, false); // Poster only
-                    });
-                    
-                    // Re-observe new items
-                    setupIntersectionObserver();
+                const nextDramas = allDramas.splice(0, 5);
+                if (nextDramas.length === 0) {
+                    // Refetch if all used up
+                    const freshDramas = await fetchAllDramas();
+                    for (let drama of freshDramas) {
+                        await renderDramaWithStream(drama);
+                    }
+                } else {
+                    for (let drama of nextDramas) {
+                        await renderDramaWithStream(drama);
+                    }
                 }
+                setupIntersectionObserver();
             } catch (err) {
                 console.error('Failed to load more shorts:', err);
             } finally {
@@ -221,7 +236,21 @@
             }
         }
 
-        fetchShorts();
+        async function init() {
+            const container = document.getElementById('short-container');
+            container.innerHTML = '<div class="flex items-center justify-center h-screen w-full"><i class="fas fa-spinner fa-spin text-4xl text-red-600"></i></div>';
+            
+            const initialDramas = await fetchAllDramas();
+            container.innerHTML = '';
+            
+            for (let drama of initialDramas) {
+                await renderDramaWithStream(drama);
+            }
+            
+            setupIntersectionObserver();
+        }
+
+        init();
     </script>
 </body>
 </html>
