@@ -235,10 +235,16 @@
         let heroDramaId = null;
 
         async function fetchWithProxy(url) {
-            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-            const response = await fetch(proxyUrl);
-            const data = await response.json();
-            return JSON.parse(data.contents);
+            try {
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+                const response = await fetch(proxyUrl);
+                const data = await response.json();
+                if (!data || !data.contents) throw new Error('Invalid proxy response');
+                return JSON.parse(data.contents);
+            } catch (err) {
+                console.error('Proxy fetch failed:', err);
+                throw err;
+            }
         }
 
         async function fetchDramas() {
