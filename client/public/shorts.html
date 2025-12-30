@@ -144,6 +144,14 @@
                 loader.style.display = 'none';
             };
 
+            video.onclick = () => {
+                if (video.paused) {
+                    video.play();
+                } else {
+                    video.pause();
+                }
+            };
+
             container.appendChild(div);
         }
 

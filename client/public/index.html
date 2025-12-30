@@ -58,7 +58,7 @@
                     class="bg-black/50 border border-white/20 rounded-full py-1.5 pl-10 pr-4 text-xs md:text-sm focus:outline-none focus:border-red-600 focus:bg-black/80 transition-all w-32 md:w-64">
             </div>
             <i class="fas fa-bell text-sm md:text-lg cursor-pointer hidden sm:block"></i>
-            <div class="w-7 h-7 md:w-8 md:h-8 bg-blue-500 rounded cursor-pointer"></div>
+            <div onclick="showProfile()" class="w-7 h-7 md:w-8 md:h-8 bg-blue-500 rounded cursor-pointer flex items-center justify-center font-bold text-xs md:text-sm">U</div>
         </div>
     </nav>
 
@@ -84,7 +84,7 @@
             <i class="fas fa-language text-xl"></i>
             <span class="text-[10px]">Sulih</span>
         </button>
-        <button class="flex flex-col items-center space-y-1">
+        <button onclick="showProfile()" class="flex flex-col items-center space-y-1">
             <i class="fas fa-user text-xl"></i>
             <span class="text-[10px]">Profil</span>
         </button>
@@ -149,6 +149,62 @@
         </div>
         <div id="vip-sections" class="space-y-12">
             <!-- VIP segments will be injected here -->
+        </div>
+    </div>
+
+    <!-- Profile Sidebar/Modal -->
+    <div id="profile-modal" class="modal items-center justify-center p-4">
+        <div class="bg-[#181818] rounded-lg max-w-md w-full overflow-hidden relative border border-white/10">
+            <button onclick="closeProfile()" class="absolute top-4 right-4 z-50 bg-black/50 w-8 h-8 rounded-full flex items-center justify-center">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="p-6">
+                <div class="flex items-center space-x-4 mb-8">
+                    <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center text-2xl font-bold">U</div>
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Pengguna Setia</h2>
+                        <p class="text-gray-400 text-sm">premium@elfarbox.com</p>
+                    </div>
+                </div>
+                
+                <div class="space-y-1">
+                    <button class="w-full flex items-center justify-between p-3 hover:bg-white/5 rounded-md transition-colors text-gray-200">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-user-circle w-5 text-center text-gray-400"></i>
+                            <span>Akun Saya</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-xs text-gray-600"></i>
+                    </button>
+                    <button onclick="window.location.href='/about.html'" class="w-full flex items-center justify-between p-3 hover:bg-white/5 rounded-md transition-colors text-gray-200">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-info-circle w-5 text-center text-gray-400"></i>
+                            <span>Tentang ELFARBOX</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-xs text-gray-600"></i>
+                    </button>
+                    <button onclick="window.location.href='/privacy.html'" class="w-full flex items-center justify-between p-3 hover:bg-white/5 rounded-md transition-colors text-gray-200">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-shield-alt w-5 text-center text-gray-400"></i>
+                            <span>Kebijakan Privasi</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-xs text-gray-600"></i>
+                    </button>
+                    <button onclick="window.location.href='/terms.html'" class="w-full flex items-center justify-between p-3 hover:bg-white/5 rounded-md transition-colors text-gray-200">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-file-contract w-5 text-center text-gray-400"></i>
+                            <span>Syarat & Ketentuan</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-xs text-gray-600"></i>
+                    </button>
+                    <div class="h-[1px] bg-white/10 my-4"></div>
+                    <button class="w-full flex items-center space-x-3 p-3 hover:bg-white/5 rounded-md transition-colors text-red-500">
+                        <i class="fas fa-sign-out-alt w-5 text-center"></i>
+                        <span>Keluar</span>
+                    </button>
+                </div>
+                
+                <p class="text-[10px] text-gray-600 mt-8 text-center uppercase tracking-widest">ELFARBOX v1.2.0</p>
+            </div>
         </div>
     </div>
 
@@ -306,6 +362,16 @@
 
         function closeModal() {
             document.getElementById('modal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function showProfile() {
+            document.getElementById('profile-modal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeProfile() {
+            document.getElementById('profile-modal').style.display = 'none';
             document.body.style.overflow = 'auto';
         }
 
