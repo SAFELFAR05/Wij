@@ -46,11 +46,12 @@
     </style>
 </head>
 <body>
-    <nav class="fixed top-0 w-full z-50 p-4 bg-gradient-to-b from-black/80 to-transparent">
+    <nav class="fixed top-0 w-full z-50 p-4 bg-gradient-to-b from-black/80 to-transparent flex justify-between items-center">
         <a href="/" class="flex items-center space-x-2 text-white hover:text-gray-300 transition">
             <i class="fas fa-arrow-left text-2xl"></i>
             <span class="text-xl font-bold">Kembali</span>
         </a>
+        <h1 class="text-red-600 text-xl md:text-2xl font-bold tracking-tighter uppercase cursor-pointer" onclick="window.location.href='/'">ELFAR.<span class="italic">BOX</span></h1>
     </nav>
 
     <div id="detail-content" class="min-h-screen">
@@ -75,7 +76,7 @@
                     const d = result.data.drama;
                     const chapters = result.data.chapters;
                     
-                    document.title = `${d.bookName} - DramaBox`;
+                    document.title = `${d.bookName} - ELFAR.BOX`;
 
                     // Fetch stream for current episode
                     const streamRes = await fetch(`/api/stream?bookId=${bookId}&episode=${episode}`);

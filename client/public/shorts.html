@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DramaBox - Shorts</title>
+    <title>ELFAR.BOX - Shorts</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -17,11 +17,15 @@
         .action-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; }
         .action-btn i { font-size: 24px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
         .action-btn span { font-size: 12px; font-weight: bold; }
+        .logo-shorts { position: fixed; top: 20px; left: 20px; z-index: 100; }
         /* Bottom Nav shadow */
         .bottom-nav { background: rgba(0,0,0,0.9); border-top: 1px solid #333; position: fixed; bottom: 0; width: 100%; z-index: 50; }
     </style>
 </head>
 <body>
+    <div class="logo-shorts">
+        <h1 class="text-red-600 text-xl md:text-2xl font-bold tracking-tighter uppercase cursor-pointer" onclick="window.location.href='/'">ELFAR.<span class="italic">BOX</span></h1>
+    </div>
     <div class="short-container" id="short-container">
         <!-- Shorts will be loaded here -->
         <div class="flex items-center justify-center h-screen w-full">
