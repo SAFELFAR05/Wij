@@ -100,23 +100,19 @@
             const dramaName = drama.bookName || drama.name;
             const posterUrl = drama.coverWap || drama.cover;
 
-            // Try episodes 1-3 to get a valid stream
-            let videoUrl = null;
-            for (let ep = 1; ep <= 3; ep++) {
-                try {
-                    const streamRes = await fetch(`${API_BASE}/stream?bookId=${dramaId}&episode=${ep}`);
-                    if (!streamRes.ok) continue;
-                    const streamData = await streamRes.json();
-                    if (streamData.status === "success" && streamData.data?.chapter?.video?.mp4) {
-                        videoUrl = streamData.data.chapter.video.mp4;
-                        break;
-                    }
-                } catch (e) {
-                    continue;
-                }
-            }
+            // Render placeholder immediately
+            const shortItem = renderShort(dramaName, dramaId, posterUrl, null, 1);
 
-            renderShort(dramaName, dramaId, posterUrl, videoUrl, 1);
+            // Fetch stream asynchronously
+            fetch(`${API_BASE}/stream?bookId=${dramaId}&episode=1`)
+                .then(res => res.json())
+                .then(streamData => {
+                    if (streamData.status === "success" && streamData.data?.chapter?.video?.mp4) {
+                        const videoUrl = streamData.data.chapter.video.mp4;
+                        updateShortVideo(shortItem, videoUrl, posterUrl);
+                    }
+                })
+                .catch(err => console.error('Stream fetch failed:', err));
         }
 
         function renderShort(dramaName, dramaId, posterUrl, videoUrl, ep) {
@@ -126,17 +122,10 @@
 
             div.innerHTML = `
                 <div class="video-wrapper">
-                    ${videoUrl ? `
-                        <video loop playsinline poster="${posterUrl}" controlsList="nodownload" oncontextmenu="return false;" class="opacity-0 transition-opacity duration-500">
-                            <source src="${videoUrl}" type="video/mp4">
-                        </video>
-                        <div class="video-loader absolute inset-0 flex items-center justify-center bg-black z-0">
-                            <i class="fas fa-spinner fa-spin text-2xl text-red-600"></i>
-                        </div>
-                    ` : `
+                    <div class="video-content absolute inset-0">
                         <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('${posterUrl}');"></div>
                         <div class="absolute inset-0 bg-black/40"></div>
-                    `}
+                    </div>
                     <div class="overlay">
                         <h3 class="text-lg font-bold">${dramaName}</h3>
                         <p class="text-sm text-gray-300">Episode ${ep}</p>
@@ -159,9 +148,26 @@
                 </div>
             `;
 
-            const video = div.querySelector('video');
+            container.appendChild(div);
+            return div;
+        }
+
+        function updateShortVideo(div, videoUrl, posterUrl) {
+            const wrapper = div.querySelector('.video-wrapper');
+            const content = div.querySelector('.video-content');
+            
+            content.innerHTML = `
+                <video loop playsinline poster="${posterUrl}" controlsList="nodownload" oncontextmenu="return false;" class="opacity-0 transition-opacity duration-500">
+                    <source src="${videoUrl}" type="video/mp4">
+                </video>
+                <div class="video-loader absolute inset-0 flex items-center justify-center bg-black z-0">
+                    <i class="fas fa-spinner fa-spin text-2xl text-red-600"></i>
+                </div>
+            `;
+
+            const video = content.querySelector('video');
             if (video) {
-                const loader = div.querySelector('.video-loader');
+                const loader = content.querySelector('.video-loader');
                 video.onplaying = () => {
                     video.classList.remove('opacity-0');
                     if (loader) loader.style.display = 'none';
@@ -174,9 +180,13 @@
                         video.pause();
                     }
                 };
+                
+                // If it's the first visible one, play it
+                const rect = div.getBoundingClientRect();
+                if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
+                    video.play().catch(() => {});
+                }
             }
-
-            container.appendChild(div);
         }
 
         function setupIntersectionObserver() {
